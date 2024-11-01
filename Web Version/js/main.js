@@ -126,8 +126,8 @@ class Block extends PIXI.Graphics {
 
         this.dragging = false;
 
-        this.eventmode='static';
-        this.eventmode='static';
+        this.eventmode = 'static';
+        this.eventmode = 'static';
         this.enableDragging();
     }
 
@@ -135,9 +135,14 @@ class Block extends PIXI.Graphics {
         this.data = e.data;
         this.dragging = true;
         this.alpha = 0.5;
+
+        this.x = e.data.global.x;
+        this.y = e.data.global.y;
     }
 
     onDragEnd(e) {
+        this.x = e.data.global.x;
+        this.y = e.data.global.y;
         this.dragging = false;
         this.alpha = 1;
         this.data = null;
@@ -145,26 +150,25 @@ class Block extends PIXI.Graphics {
 
     onDragMove(e) {
         if (this.dragging) {
-            let newPos = this.data.getLocalPosition(this.parent);
-            this.x = newPos.x;
-            this.y = newPos.y;
+            this.x = e.data.global.x;
+            this.y = e.data.global.y;
         }
     }
 
     enableDragging() {
         this.interactive = true;
         this.on('pointerdown', this.onDragStart)
-        .on('pointerup', this.onDragEnd)
-        .on('pointerupoutside', this.onDragEnd)
-        .on('pointermove', this.onDragMove);
+            .on('pointerup', this.onDragEnd)
+            .on('pointerupoutside', this.onDragEnd)
+            .on('pointermove', this.onDragMove);
     }
 
     disableDragging() {
         this.interactive = true;
         this.off('pointerdown', this.onDragStart)
-        .off('pointerup', this.onDragEnd)
-        .off('pointerupoutside', this.onDragEnd)
-        .off('pointermove', this.onDragMove);
+            .off('pointerup', this.onDragEnd)
+            .off('pointerupoutside', this.onDragEnd)
+            .off('pointermove', this.onDragMove);
     }
 
     drawBlock() {
