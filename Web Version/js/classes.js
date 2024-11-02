@@ -1,16 +1,19 @@
 class BlockSprite extends PIXI.Graphics {
-    constructor(x = 0, y = 0, shape, texture, dragFunc) {
+    constructor(x = 0, y = 0, shape, texture, dragFunc, numPossForms = 1, currentForm = 1) {
         super();
-        this.blockShape = shape;
+        this.shape = shape;
+        this.numPossForms = numPossForms; // # of possible forms through 90deg rotations
+        this.currentForm = currentForm; // the current shape after being rotated 90Deg currentForm-1 times
+        if (this.currentForm < 1) this.currentForm = 1;
         this.texture = texture;
         this.sprite = PIXI.Sprite.from(texture);
         this.sprite.x = x;
         this.sprite.y = y;
-        this.sprite.scale = new PIXI.Point(0.5,0.5);
-        
+        this.sprite.scale = new PIXI.Point(0.5, 0.5);
+
         this.sprite.anchor.set(0.5);
 
-        this.dragFunc=dragFunc;
+        this.dragFunc = dragFunc;
         this.enableInteractivity();
         app.stage.addChild(this.sprite);
     }
@@ -24,6 +27,10 @@ class BlockSprite extends PIXI.Graphics {
     disableInteractivity() {
         this.sprite.interactive = false;
         this.sprite.off('pointerdown', this.dragFunc, this.sprite);
+    }
+
+    rotate(){
+        
     }
 }
 

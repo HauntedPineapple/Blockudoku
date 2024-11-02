@@ -1,99 +1,134 @@
 "use strict";
-const app = new PIXI.Application({ 'height': 800, 'width': 600, 'backgroundColor': '#FCFCF4' });
+const app = new PIXI.Application({ 'width': 600, 'height': 800, 'backgroundColor': '#FCFCF4' });
 document.body.querySelector("#pixicanvas").appendChild(app.view);
 
-//#region Constants
 const WIDTH = app.view.width;
 const HEIGHT = app.view.height;
 const CELLSIZE = 50; //px
 
 const blockShapes = {
-    'CELL': [//numForms: 1
-        [1]
-    ],
-    'block1': [//numForms: 2
-        [1],
-        [1]
-    ],
-    'block2': [//numForms: 2
-        [1],
-        [1],
-        [1]
-    ],
-    'block3': [//numForms: 2
-        [1],
-        [1],
-        [1],
-        [1]
-    ],
-    'block4': [//numForms: 2
-        [1],
-        [1],
-        [1],
-        [1],
-        [1]
-    ],
-    'block5': [//numForms: 2
-        [0, 1],
-        [1, 0]
-    ],
-    'block6': [//numForms: 2
-        [0, 0, 1],
-        [0, 1, 0],
-        [1, 0, 0]
-    ],
-    'block7': [//numForms: 4
-        [1, 0],
-        [1, 1]
-    ],
-    'block8': [//numForms: 4
-        [1, 1, 1],
-        [1, 0, 0],
-        [1, 0, 0]
-    ],
-    'block9': [//numForms: 4
-        [1, 1, 1],
-        [0, 1, 0],
-        [0, 1, 0]
-    ],
-    'block10': [//numForms: 4
-        [0, 1, 0],
-        [1, 1, 1]
-    ],
-    'block11': [//numForms: 4
-        [1, 1],
-        [1, 0],
-        [1, 1]
-    ],
-    'block12': [//numForms: 4
-        [1, 0],
-        [1, 0],
-        [1, 1]
-    ],
-    'block13': [//numForms: 4
-        [0, 1],
-        [0, 1],
-        [1, 1]
-    ],
-    'block14': [//numForms: 4
-        [1, 1, 0],
-        [0, 1, 1]
-    ],
-    'block15': [//numForms: 4
-        [0, 1, 1],
-        [1, 1, 0]
-    ],
-    'block16': [//numForms: 1
-        [0, 1, 0],
-        [1, 1, 1],
-        [0, 1, 0]
-    ],
-    'block17': [//numForms: 1
-        [1, 1],
-        [1, 1]
-    ]
+    'CELL': {
+        shape: [
+            [1]
+        ], numForms: 1
+    },
+    'block1': {
+        shape: [
+            [1],
+            [1]
+        ], numForms: 2
+    },
+    'block2': {
+        shape: [
+            [1],
+            [1],
+            [1]
+        ],
+        numForms: 2
+    },
+    'block3': {
+        shape: [
+            [1],
+            [1],
+            [1],
+            [1]
+        ], numForms: 2
+    },
+    'block4': {
+        shape: [
+            [1],
+            [1],
+            [1],
+            [1],
+            [1]
+        ], numForms: 2
+    },
+    'block5': {
+        shape: [
+            [0, 1],
+            [1, 0]
+        ], numForms: 2
+    },
+    'block6': {
+        shape: [
+            [0, 0, 1],
+            [0, 1, 0],
+            [1, 0, 0]
+        ], numForms: 2
+    },
+    'block7': {
+        shape: [
+            [1, 0],
+            [1, 1]
+        ], numForms: 4
+    },
+    'block8': {
+        shape: [
+            [1, 1, 1],
+            [1, 0, 0],
+            [1, 0, 0]
+        ], numForms: 4
+    },
+    'block9': {
+        shape: [
+            [1, 1, 1],
+            [0, 1, 0],
+            [0, 1, 0]
+        ], numForms: 4
+    },
+    'block10': {
+        shape: [
+            [0, 1, 0],
+            [1, 1, 1]
+        ], numForms: 4
+    },
+    'block11': {
+        shape: [
+            [1, 1],
+            [1, 0],
+            [1, 1]
+        ], numForms: 4
+    },
+    'block12': {
+        shape: [
+            [1, 0],
+            [1, 0],
+            [1, 1]
+        ], numForms: 4
+    },
+    'block13': {
+        shape: [
+            [0, 1],
+            [0, 1],
+            [1, 1]
+        ], numForms: 4
+    },
+    'block14': {
+        shape: [
+            [1, 1, 0],
+            [0, 1, 1]
+        ], numForms: 4
+    },
+    'block15': {
+        shape: [
+            [0, 1, 1],
+            [1, 1, 0]
+        ], numForms: 4
+    },
+    'block16': {
+        shape: [
+            [0, 1, 0],
+            [1, 1, 1],
+            [0, 1, 0]
+        ], numForms: 1
+    },
+    'block17': {
+        shape: [
+            [1, 1],
+            [1, 1]
+        ], numForms: 1
+    },
 };
-//#endregion
 
 let shapeKeys = Object.keys(blockShapes);
 for (let i = 0; i < shapeKeys.length; i++) {
@@ -149,6 +184,13 @@ texturesPromise.then((textures) => {
     }
 
     app.stage.addChild(gameGrid.gridGraphic);
+
+    const playableBlockPositions = {
+        x1: gameGrid.topLeftCorner.x + CELLSIZE - 10,
+        x2: gameGrid.topLeftCorner.x + CELLSIZE * 4.5,
+        x3: gameGrid.topLeftCorner.x + CELLSIZE * 8 + 10,
+        y: gameGrid.topLeftCorner.y + gameGrid.size + CELLSIZE * 2.5
+    }
     //#endregion
 
     //#region Move blocks
@@ -161,10 +203,6 @@ texturesPromise.then((textures) => {
     function onDragStart() {
         this.alpha = 0.5;
         dragTarget = this;
-        // console.log('dragTarget: ');
-        // console.log(dragTarget);
-        // console.log('dragTarget.parent: ');
-        // console.log(dragTarget.parent);
         app.stage.on('pointermove', onDragMove);
     }
 
@@ -181,13 +219,42 @@ texturesPromise.then((textures) => {
     }
     //#endregion
 
-    const playableBlockPositions = {
-        x1: gameGrid.topLeftCorner.x + CELLSIZE - 10,
-        x2: gameGrid.topLeftCorner.x + CELLSIZE * 4.5,
-        x3: gameGrid.topLeftCorner.x + CELLSIZE * 8 + 10,
-        y: gameGrid.topLeftCorner.y + gameGrid.size + CELLSIZE * 2.5
-    }
-    let testSprite1 = new BlockSprite(playableBlockPositions.x1, playableBlockPositions.y, blockShapes.block7, textures.block7, onDragStart);
-    let testSprite2 = new BlockSprite(playableBlockPositions.x2, playableBlockPositions.y, blockShapes.block16, textures.block16, onDragStart);
-    let testSprite3 = new BlockSprite(playableBlockPositions.x3, playableBlockPositions.y, blockShapes.block2, textures.block2, onDragStart);
+    //#region Test Button
+    const button = new PIXI.Graphics();
+    button.beginFill('#EF3E36');
+    button.drawRect(250, 25, 100, 45);
+    button.eventMode = 'static';
+    button.cursor = 'pointer';
+    button.on('pointerdown', onButtonDown)
+        .on('pointerup', onButtonUp)
+        .on('pointerupoutside', onButtonUp)
+        .on('pointerover', onButtonOver)
+        .on('pointerout', onButtonOut);
+    app.stage.addChild(button);
+
+    function onButtonDown(e) {
+        console.log("meow");
+    };
+    function onButtonUp(e) {
+
+    };
+    function onButtonOver(e) {
+
+    };
+    function onButtonOut(e) {
+
+    };
+    //#endregion
+
+    //#region TESTING
+    let blocksOnScreen = [];
+    // for(let i=0;i<3;i++){
+    //     blocksOnScreen.push(new BlockSprite(playableBlockPositions[i], playableBlockPositions.y, blockShapes[getRandom()], textures.block7, onDragStart));
+    // }
+
+    let testSprite1 = new BlockSprite(playableBlockPositions.x1, playableBlockPositions.y, blockShapes.block7.shape, textures.block7, onDragStart);
+    let testSprite2 = new BlockSprite(playableBlockPositions.x2, playableBlockPositions.y, blockShapes.block16.shape, textures.block16, onDragStart);
+    let testSprite3 = new BlockSprite(playableBlockPositions.x3, playableBlockPositions.y, blockShapes.block2.shape, textures.block2, onDragStart);
+    //#endregion
 });
+
