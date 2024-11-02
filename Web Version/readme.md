@@ -16,3 +16,4 @@
 
 ## Stretch Goals
 * Create a spritesheet to optimize the texture managment
+    * [TexturePacker](https://www.codeandweb.com/texturepacker/tutorials/how-to-create-sprite-sheets-and-animations-with-pixijs7)
