@@ -139,7 +139,7 @@ for (let i = 0; i < SHAPEKEYS.length; i++) {
     });
 }
 
-let score=0;
+let score = 0;
 
 let texturesPromise = PIXI.Assets.load(SHAPEKEYS);
 texturesPromise.then((textures) => {
@@ -217,7 +217,7 @@ texturesPromise.then((textures) => {
         if (dragTarget) {
             app.stage.off('pointermove', onDragMove);
             dragTarget.alpha = 1;
-            
+
             dragTarget.scale = new PIXI.Point(0.35, 0.35);
 
             dragTarget = null;
@@ -237,6 +237,11 @@ texturesPromise.then((textures) => {
         .on('pointerover', onbutton1Over)
         .on('pointerout', onbutton1Out);
     app.stage.addChild(button1);
+
+    const button1Text = new PIXI.Text("Rotate", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 24 }));
+    button1Text.x = 110;
+    button1Text.y = 35;
+    button1.addChild(button1Text);
 
     function onbutton1Down(e) {
         console.log("Button 1 says: MEOW");
@@ -266,6 +271,11 @@ texturesPromise.then((textures) => {
         .on('pointerout', onbutton2Out);
     app.stage.addChild(button2);
 
+    const button2Text = new PIXI.Text("BUTTOM", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 20 }));
+    button2Text.x = 260;
+    button2Text.y = 35;
+    button2.addChild(button2Text);
+
     function onbutton2Down(e) {
         console.log("Button 2 says: uwu");
     };
@@ -290,6 +300,11 @@ texturesPromise.then((textures) => {
         .on('pointerover', onbutton3Over)
         .on('pointerout', onbutton3Out);
     app.stage.addChild(button3);
+
+    const button3Text = new PIXI.Text("New Blocks", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 16 }));
+    button3Text.x = 410;
+    button3Text.y = 35;
+    button3.addChild(button3Text);
 
     function onbutton3Down(e) {
         console.log("Button 3 says: Hewwo");
