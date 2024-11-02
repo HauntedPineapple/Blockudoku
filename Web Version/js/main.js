@@ -2,6 +2,8 @@
 const app = new PIXI.Application({ 'width': 600, 'height': 900, 'backgroundColor': '#FCFCF4' });
 document.body.querySelector("#pixicanvas").appendChild(app.view);
 
+window.__PIXI_DEVTOOLS__ = { app: app };
+
 const WIDTH = app.view.width;
 const HEIGHT = app.view.height;
 const CELLSIZE = 50; //px
@@ -146,26 +148,31 @@ let score = 0;
 let blocksOnGrid = [];
 let playableBlocks = [];
 
+//app.ticker.add((delta) => {});
+
 let texturesPromise = PIXI.Assets.load(SHAPEKEYS);
 texturesPromise.then((textures) => {
-    //#region  Create game grid
+    //#region game grid
     let gameGrid = {
         size: CELLSIZE * 9,
         gridGraphic: new PIXI.Graphics,
         gridArray: Array(9).fill().map(() => Array(9).fill(0)),
+        cellArray: [[], [], [], [], [], [], [], [], []],
         topLeftCorner: { x: 75, y: 100 },
     };
 
-    gameGrid.gridGraphic.beginFill('#FFF9F9');
-    gameGrid.gridGraphic.drawRect(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y, gameGrid.size, gameGrid.size);
-    //draw squares
-    let numDrawn = 0;
-    for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-            if (numDrawn % 2 == 0) gameGrid.gridGraphic.beginFill('#D0EFB1');
-            else gameGrid.gridGraphic.beginFill('#B3D89C');
-            gameGrid.gridGraphic.drawRect(gameGrid.topLeftCorner.x + gameGrid.size / 3 * j, gameGrid.topLeftCorner.y + gameGrid.size / 3 * i, gameGrid.size / 3, gameGrid.size / 3);
-            numDrawn++;
+    // drawcells
+    for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+            let currentColor = Math.floor(i / 3) % 2 === Math.floor(j / 3) % 2 ? '#D0EFB1' : '#B3D89C';
+
+            let cell = new PIXI.Graphics();
+            cell.beginFill(currentColor);
+            cell.drawRect(gameGrid.topLeftCorner.x + (CELLSIZE * j), gameGrid.topLeftCorner.y + (CELLSIZE * i), CELLSIZE, CELLSIZE);
+            cell.endFill();
+
+            gameGrid.cellArray[i][j] = cell;
+            app.stage.addChild(cell);
         }
     }
 
@@ -179,7 +186,6 @@ texturesPromise.then((textures) => {
     gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
     gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y - 10);
     gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
-
     gameGrid.gridGraphic.lineStyle(1, '#000000', 1);
     for (let i = 1; i < 9; i++) {
         gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + CELLSIZE * i);
@@ -200,7 +206,16 @@ texturesPromise.then((textures) => {
     }
     //#endregion
 
-    //#region Move blocks
+    //#region playable blocks
+    for (let i = 0; i < 3; i++) {
+        let randomNum = getRandomInt(0, SHAPEKEYS.length);
+        let positionKey = Object.keys(playableBlockPositions)[i];
+        let newBlock = new BlockSprite(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[SHAPEKEYS[randomNum]].shape, textures[SHAPEKEYS[randomNum]], onDragStart)
+        playableBlocks.push(newBlock);
+    }
+    //#endregion
+
+    //#region block movement
     let dragTarget = null;
     app.stage.eventMode = 'static';
     app.stage.hitArea = app.screen;
@@ -231,8 +246,8 @@ texturesPromise.then((textures) => {
         }
     }
 
-    function getNearestSpot(blockSprite){
-        
+    function getNearestSpot(blockSprite) {
+
     }
 
     function snapBlockToGrid(blockSprite) {
@@ -351,13 +366,10 @@ texturesPromise.then((textures) => {
     //#endregion
 
     //#region TESTING
+    //console.log(gameGrid);
+    //console.log(playableBlocks[0]);
 
-    for (let i = 0; i < 3; i++) {
-        let randomNum = getRandomInt(0, SHAPEKEYS.length);
-        let positionKey = Object.keys(playableBlockPositions)[i];
-        let newBlock = new BlockSprite(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[SHAPEKEYS[randomNum]].shape, textures[SHAPEKEYS[randomNum]], onDragStart)
-        playableBlocks.push(newBlock);
-    }
+
 
     // let testSprite1 = new BlockSprite(playableBlockPositions.x1, playableBlockPositions.y, BLOCKSHAPES.block7.shape, textures.block7, onDragStart);
     // let testSprite2 = new BlockSprite(playableBlockPositions.x2, playableBlockPositions.y, BLOCKSHAPES.block16.shape, textures.block16, onDragStart);

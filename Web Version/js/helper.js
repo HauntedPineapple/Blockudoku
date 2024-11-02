@@ -1,8 +1,14 @@
 // bounding box collision detection - it compares PIXI.Rectangles
 function rectsIntersect(a, b) {
-    var ab = a.getBounds();
-    var bb = b.getBounds();
+    let ab = a.getBounds();
+    let bb = b.getBounds();
     return ab.x + ab.width > bb.x && ab.x < bb.x + bb.width && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
+}
+
+function calculateDistanceBetweenTwoPoints(pointA, pointB) {
+    let xx = pointA.x - pointB.x;
+    let yy = pointA.y - pointB.y;
+    return Math.sqrt((xx * xx) + (yy * yy));
 }
 
 /**

@@ -18,8 +18,11 @@ class BlockSprite extends PIXI.Graphics {
         for (let i = 0; i < this.shape.length; i++)
             for (let j = 0; j < this.shape[0].length; j++)
                 if (this.shape[i][j] == 1) this.value++;
-        console.log(this.shape);
-        console.log(this.value);
+
+        // Create the hitbox points
+        // ....
+        // this.sprite.hitArea = new PIXI.Polygon(new PIXI.Point(x, y), new PIXI.Point(x, y));
+        // this.sprite.hitArea = new PIXI.Polygon([x, y, x, y, x, y]);
 
         this.dragFunc = dragFunc;
         this.enableInteractivity();
@@ -48,22 +51,23 @@ class BlockSprite extends PIXI.Graphics {
     }
 }
 
+
 // Stinky code below
+
 // class Cell extends PIXI.Graphics {
-//     constructor(x = 0, y = 0, fillColor = '#78CE8B', borderColor = '#12684E', size = CELLSIZE) {
+//     constructor(x = 0, y = 0, fillColor, size = CELLSIZE) {
 //         super();
 
 //         this.x = x;
 //         this.y = y;
 //         this.beginFill(fillColor);
-//         this.lineStyle(4, borderColor, 1);
 //         this.drawRect(x, y, size, size);
 //         this.endFill();
 //     }
 // }
 
 // class Block extends PIXI.Graphics {
-//     constructor(x = 0, y = 0, shape, numPossForms = 1, currentForm = 1) {
+    //     constructor(x = 0, y = 0, shape, numPossForms = 1, currentForm = 1) {
 //         super();
 
 //         this.x = x;
