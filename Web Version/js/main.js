@@ -6,7 +6,7 @@ const WIDTH = app.view.width;
 const HEIGHT = app.view.height;
 const CELLSIZE = 50; //px
 
-const blockShapes = {
+const BLOCKSHAPES = {
     'CELL': {
         shape: [
             [1]
@@ -129,17 +129,17 @@ const blockShapes = {
         ], numForms: 1
     },
 };
+const SHAPEKEYS = Object.keys(BLOCKSHAPES);
 
-let shapeKeys = Object.keys(blockShapes);
-for (let i = 0; i < shapeKeys.length; i++) {
-    //console.log(shapeKeys[i]);
+for (let i = 0; i < SHAPEKEYS.length; i++) {
+    //console.log(SHAPEKEYS[i]);
     PIXI.Assets.add({
-        alias: shapeKeys[i],
-        src: './assets/' + shapeKeys[i] + '.png'
+        alias: SHAPEKEYS[i],
+        src: './assets/' + SHAPEKEYS[i] + '.png'
     });
 }
 
-let texturesPromise = PIXI.Assets.load(shapeKeys);
+let texturesPromise = PIXI.Assets.load(SHAPEKEYS);
 texturesPromise.then((textures) => {
     //#region  Create game grid
     let gameGrid = {
@@ -219,42 +219,112 @@ texturesPromise.then((textures) => {
     }
     //#endregion
 
-    //#region Test Button
-    const button = new PIXI.Graphics();
-    button.beginFill('#EF3E36');
-    button.drawRect(250, 25, 100, 45);
-    button.eventMode = 'static';
-    button.cursor = 'pointer';
-    button.on('pointerdown', onButtonDown)
-        .on('pointerup', onButtonUp)
-        .on('pointerupoutside', onButtonUp)
-        .on('pointerover', onButtonOver)
-        .on('pointerout', onButtonOut);
-    app.stage.addChild(button);
+    //#region Test Buttons
+    const button1 = new PIXI.Graphics();
+    button1.beginFill('#EF3E36');
+    button1.drawRect(100, 25, 100, 45);
+    button1.eventMode = 'static';
+    button1.cursor = 'pointer';
+    button1.on('pointerdown', onbutton1Down)
+        .on('pointerup', onbutton1Up)
+        .on('pointerupoutside', onbutton1Up)
+        .on('pointerover', onbutton1Over)
+        .on('pointerout', onbutton1Out);
+    app.stage.addChild(button1);
 
-    function onButtonDown(e) {
-        console.log("meow");
+    function onbutton1Down(e) {
+        console.log("Button 1 says: MEOW");
     };
-    function onButtonUp(e) {
-
-    };
-    function onButtonOver(e) {
+    function onbutton1Up(e) {
 
     };
-    function onButtonOut(e) {
+    function onbutton1Over(e) {
+
+    };
+    function onbutton1Out(e) {
+
+    };
+
+    const button2 = new PIXI.Graphics();
+    button2.beginFill('#EF3E36');
+    button2.drawRect(250, 25, 100, 45);
+    button2.eventMode = 'static';
+    button2.cursor = 'pointer';
+    button2.on('pointerdown', onbutton2Down)
+        .on('pointerup', onbutton2Up)
+        .on('pointerupoutside', onbutton2Up)
+        .on('pointerover', onbutton2Over)
+        .on('pointerout', onbutton2Out);
+    app.stage.addChild(button2);
+
+    function onbutton2Down(e) {
+        console.log("Button 2 says: uwu");
+    };
+    function onbutton2Up(e) {
+
+    };
+    function onbutton2Over(e) {
+
+    };
+    function onbutton2Out(e) {
+
+    };
+
+    const button3 = new PIXI.Graphics();
+    button3.beginFill('#EF3E36');
+    button3.drawRect(400, 25, 100, 45);
+    button3.eventMode = 'static';
+    button3.cursor = 'pointer';
+    button3.on('pointerdown', onbutton3Down)
+        .on('pointerup', onbutton3Up)
+        .on('pointerupoutside', onbutton3Up)
+        .on('pointerover', onbutton3Over)
+        .on('pointerout', onbutton3Out);
+    app.stage.addChild(button3);
+
+    function onbutton3Down(e) {
+        console.log("Button 3 says: Hewwo");
+
+        for (let i = 0; i < 3; i++) {
+            let removed = blocksOnScreen.pop();
+            playableBlocks.pop();
+            removed.release();
+        }
+        
+        for (let i = 0; i < 3; i++) {
+            let randomNum = getRandomInt(0, SHAPEKEYS.length);
+            let positionKey = Object.keys(playableBlockPositions)[i];
+            let newBlock = new BlockSprite(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[SHAPEKEYS[randomNum]].shape, textures[SHAPEKEYS[randomNum]], onDragStart)
+            blocksOnScreen.push(newBlock);
+            playableBlocks.push(newBlock);
+        }
+    };
+    function onbutton3Up(e) {
+
+    };
+    function onbutton3Over(e) {
+
+    };
+    function onbutton3Out(e) {
 
     };
     //#endregion
 
     //#region TESTING
     let blocksOnScreen = [];
-    // for(let i=0;i<3;i++){
-    //     blocksOnScreen.push(new BlockSprite(playableBlockPositions[i], playableBlockPositions.y, blockShapes[getRandom()], textures.block7, onDragStart));
-    // }
+    let playableBlocks = [];
 
-    let testSprite1 = new BlockSprite(playableBlockPositions.x1, playableBlockPositions.y, blockShapes.block7.shape, textures.block7, onDragStart);
-    let testSprite2 = new BlockSprite(playableBlockPositions.x2, playableBlockPositions.y, blockShapes.block16.shape, textures.block16, onDragStart);
-    let testSprite3 = new BlockSprite(playableBlockPositions.x3, playableBlockPositions.y, blockShapes.block2.shape, textures.block2, onDragStart);
+    for (let i = 0; i < 3; i++) {
+        let randomNum = getRandomInt(0, SHAPEKEYS.length);
+        let positionKey = Object.keys(playableBlockPositions)[i];
+        let newBlock = new BlockSprite(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[SHAPEKEYS[randomNum]].shape, textures[SHAPEKEYS[randomNum]], onDragStart)
+        blocksOnScreen.push(newBlock);
+        playableBlocks.push(newBlock);
+    }
+
+    // let testSprite1 = new BlockSprite(playableBlockPositions.x1, playableBlockPositions.y, BLOCKSHAPES.block7.shape, textures.block7, onDragStart);
+    // let testSprite2 = new BlockSprite(playableBlockPositions.x2, playableBlockPositions.y, BLOCKSHAPES.block16.shape, textures.block16, onDragStart);
+    // let testSprite3 = new BlockSprite(playableBlockPositions.x3, playableBlockPositions.y, BLOCKSHAPES.block2.shape, textures.block2, onDragStart);
     //#endregion
 });
 

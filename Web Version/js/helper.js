@@ -5,8 +5,16 @@ function rectsIntersect(a, b) {
     return ab.x + ab.width > bb.x && ab.x < bb.x + bb.width && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
 }
 
-function getRandom(min, max) {
-    return Math.random() * (max - min) + min;
+/**
+ *  generates a random number between the specified values
+ * @param {*} min 
+ * @param {*} max 
+ * @returns The returned value is no lower than (but may equal) min, and is less than (and not equal) max
+ */
+function getRandomInt(min, max) {
+    const minCeiled = Math.ceil(min);
+    const maxFloored = Math.floor(max);
+    return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled)
 }
 
 /**

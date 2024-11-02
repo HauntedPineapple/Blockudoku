@@ -10,7 +10,6 @@ class BlockSprite extends PIXI.Graphics {
         this.sprite.x = x;
         this.sprite.y = y;
         this.sprite.scale = new PIXI.Point(0.5, 0.5);
-
         this.sprite.anchor.set(0.5);
 
         this.dragFunc = dragFunc;
@@ -30,7 +29,12 @@ class BlockSprite extends PIXI.Graphics {
     }
 
     rotate(){
-        
+
+    }
+
+    release(){
+        this.disableInteractivity();
+        this.sprite.destroy();
     }
 }
 
