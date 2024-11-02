@@ -1,5 +1,5 @@
 "use strict";
-const app = new PIXI.Application({ 'height': 600, 'width': 600, 'backgroundColor': '#FCFCF4' });
+const app = new PIXI.Application({ 'height': 800, 'width': 800, 'backgroundColor': '#FCFCF4' });
 document.body.querySelector("#pixicanvas").appendChild(app.view);
 
 //#region Constants
@@ -107,13 +107,47 @@ for (let i = 0; i < shapeKeys.length; i++) {
 let texturesPromise = PIXI.Assets.load(shapeKeys);
 texturesPromise.then((textures) => {
     //#region  Create game grid
-    const gameGrid = new PIXI.Graphics();
-    gameGrid.beginFill('#F7F9F7');
-    gameGrid.drawRect(75, 75, 50, 50);
-    app.stage.addChild(gameGrid);
+    let gameGrid = {
+        size: CELLSIZE * 9,
+        gridGraphic: new PIXI.Graphics,
+        gridArray: Array(9).fill().map(() => Array(9).fill(0)),
+        topLeftCorner: { x: 75, y: 75 },
+    };
+
+    gameGrid.gridGraphic.beginFill('#FFF9F9');
+    gameGrid.gridGraphic.drawRect(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y, gameGrid.size, gameGrid.size);
+    //draw squares
+    for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+        }
+    }
+
+    //draw lines
+    gameGrid.gridGraphic.lineStyle(10, '#000000', 1);
+    gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y - 5);
+    gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y - 5);
+    gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + gameGrid.size + 5);
+    gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + gameGrid.size + 5);
+    gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y - 10);
+    gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
+    gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y - 10);
+    gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
+
+    gameGrid.gridGraphic.lineStyle(1, '#000000', 1);
+    for (let i = 1; i < 9; i++) {
+        gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + CELLSIZE * i);
+        gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + CELLSIZE * i);
+        for (let j = 1; j < 9; j++) {
+            gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y);
+            gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y + gameGrid.size);
+        }
+    }
+
+    app.stage.addChild(gameGrid.gridGraphic);
     //#endregion
 
-    let testSprite = new BlockSprite(app.screen.width / 2, app.screen.height / 2, blockShapes.block13, textures.block13, onDragStart)
+    let testSprite = new BlockSprite(600, 600, blockShapes.block13, textures.block13, onDragStart)
+    // let testSprite = new BlockSprite(gameGrid.topLeftCorner.x -50 + CELLSIZE * 4,  gameGrid.topLeftCorner.y-25  + CELLSIZE * 2, blockShapes.block13, textures.block13, onDragStart)
 
     //#region Move blocks
     let dragTarget = null;
