@@ -1,5 +1,7 @@
 # Blockudoku Web Version
 
+[Check it out!](https://people.rit.edu/aam6039/Blockudoku/index.html)
+
 ## Resources
 * [IGME Pixi.js notes](https://github.com/tonethar/IGME-230-Master/blob/master/notes/pixi-js-0.md)
 * [IGME Web Apps notes](https://github.com/tonethar/IGME-230-Master/blob/master/notes/web-apps-0.md)
