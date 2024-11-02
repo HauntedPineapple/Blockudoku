@@ -29,12 +29,12 @@ class BlockSprite extends PIXI.Graphics {
     enableInteractivity() {
         this.sprite.interactive = true;
         this.sprite.eventMode = 'static';
-        this.sprite.on('pointerdown', this.dragFunc, this.sprite);
+        this.sprite.on('pointerdown', this.dragFunc, this);
     }
 
     disableInteractivity() {
         this.sprite.interactive = false;
-        this.sprite.off('pointerdown', this.dragFunc, this.sprite);
+        this.sprite.off('pointerdown', this.dragFunc, this);
     }
 
     rotate() {

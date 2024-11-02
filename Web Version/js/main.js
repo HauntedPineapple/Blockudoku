@@ -140,6 +140,11 @@ for (let i = 0; i < SHAPEKEYS.length; i++) {
 }
 
 let score = 0;
+// let startScene, gameScene, gameOverScene;
+// let startGameButton, startOverButton;
+// let gameOverText;
+let blocksOnGrid = [];
+let playableBlocks = [];
 
 let texturesPromise = PIXI.Assets.load(SHAPEKEYS);
 texturesPromise.then((textures) => {
@@ -204,13 +209,15 @@ texturesPromise.then((textures) => {
 
     function onDragStart() {
         this.alpha = 0.5;
-        dragTarget = this;
+        dragTarget = this.sprite;
         dragTarget.scale = new PIXI.Point(0.5, 0.5);
         app.stage.on('pointermove', onDragMove);
     }
 
     function onDragMove(e) {
-        if (dragTarget) dragTarget.parent.toLocal(e.global, null, dragTarget.position);
+        if (dragTarget) {
+            dragTarget.parent.toLocal(e.global, null, dragTarget.position);
+        }
     }
 
     function onDragEnd() {
@@ -222,6 +229,17 @@ texturesPromise.then((textures) => {
 
             dragTarget = null;
         }
+    }
+
+    function getNearestSpot(blockSprite){
+        
+    }
+
+    function snapBlockToGrid(blockSprite) {
+        // Calculate the nearest grid cell based on the block’s current position.
+        // Check if the target position on the board is unoccupied and within bounds.
+
+        this.blockSprite.disableInteractivity();
     }
     //#endregion
 
@@ -310,8 +328,7 @@ texturesPromise.then((textures) => {
         console.log("Button 3 says: Hewwo");
 
         for (let i = 0; i < 3; i++) {
-            let removed = blocksOnScreen.pop();
-            playableBlocks.pop();
+            let removed = playableBlocks.pop();
             removed.release();
         }
 
@@ -319,7 +336,6 @@ texturesPromise.then((textures) => {
             let randomNum = getRandomInt(0, SHAPEKEYS.length);
             let positionKey = Object.keys(playableBlockPositions)[i];
             let newBlock = new BlockSprite(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[SHAPEKEYS[randomNum]].shape, textures[SHAPEKEYS[randomNum]], onDragStart)
-            blocksOnScreen.push(newBlock);
             playableBlocks.push(newBlock);
         }
     };
@@ -335,14 +351,11 @@ texturesPromise.then((textures) => {
     //#endregion
 
     //#region TESTING
-    let blocksOnScreen = [];
-    let playableBlocks = [];
 
     for (let i = 0; i < 3; i++) {
         let randomNum = getRandomInt(0, SHAPEKEYS.length);
         let positionKey = Object.keys(playableBlockPositions)[i];
         let newBlock = new BlockSprite(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[SHAPEKEYS[randomNum]].shape, textures[SHAPEKEYS[randomNum]], onDragStart)
-        blocksOnScreen.push(newBlock);
         playableBlocks.push(newBlock);
     }
 
