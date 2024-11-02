@@ -1,5 +1,5 @@
 "use strict";
-const app = new PIXI.Application({ 'width': 600, 'height': 800, 'backgroundColor': '#FCFCF4' });
+const app = new PIXI.Application({ 'width': 600, 'height': 900, 'backgroundColor': '#FCFCF4' });
 document.body.querySelector("#pixicanvas").appendChild(app.view);
 
 const WIDTH = app.view.width;
@@ -139,6 +139,8 @@ for (let i = 0; i < SHAPEKEYS.length; i++) {
     });
 }
 
+let score=0;
+
 let texturesPromise = PIXI.Assets.load(SHAPEKEYS);
 texturesPromise.then((textures) => {
     //#region  Create game grid
@@ -189,7 +191,7 @@ texturesPromise.then((textures) => {
         x1: gameGrid.topLeftCorner.x + CELLSIZE - 10,
         x2: gameGrid.topLeftCorner.x + CELLSIZE * 4.5,
         x3: gameGrid.topLeftCorner.x + CELLSIZE * 8 + 10,
-        y: gameGrid.topLeftCorner.y + gameGrid.size + CELLSIZE * 2.5
+        y: gameGrid.topLeftCorner.y + gameGrid.size + CELLSIZE * 2
     }
     //#endregion
 
@@ -203,6 +205,7 @@ texturesPromise.then((textures) => {
     function onDragStart() {
         this.alpha = 0.5;
         dragTarget = this;
+        dragTarget.scale = new PIXI.Point(0.5, 0.5);
         app.stage.on('pointermove', onDragMove);
     }
 
@@ -214,6 +217,9 @@ texturesPromise.then((textures) => {
         if (dragTarget) {
             app.stage.off('pointermove', onDragMove);
             dragTarget.alpha = 1;
+            
+            dragTarget.scale = new PIXI.Point(0.35, 0.35);
+
             dragTarget = null;
         }
     }
@@ -234,6 +240,9 @@ texturesPromise.then((textures) => {
 
     function onbutton1Down(e) {
         console.log("Button 1 says: MEOW");
+        playableBlocks[0].rotate();
+        playableBlocks[1].rotate();
+        playableBlocks[2].rotate();
     };
     function onbutton1Up(e) {
 
@@ -290,7 +299,7 @@ texturesPromise.then((textures) => {
             playableBlocks.pop();
             removed.release();
         }
-        
+
         for (let i = 0; i < 3; i++) {
             let randomNum = getRandomInt(0, SHAPEKEYS.length);
             let positionKey = Object.keys(playableBlockPositions)[i];
