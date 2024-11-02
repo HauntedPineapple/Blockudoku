@@ -1,5 +1,5 @@
 "use strict";
-const app = new PIXI.Application({ 'height': 800, 'width': 800, 'backgroundColor': '#FCFCF4' });
+const app = new PIXI.Application({ 'height': 800, 'width': 600, 'backgroundColor': '#FCFCF4' });
 document.body.querySelector("#pixicanvas").appendChild(app.view);
 
 //#region Constants
@@ -111,14 +111,19 @@ texturesPromise.then((textures) => {
         size: CELLSIZE * 9,
         gridGraphic: new PIXI.Graphics,
         gridArray: Array(9).fill().map(() => Array(9).fill(0)),
-        topLeftCorner: { x: 75, y: 75 },
+        topLeftCorner: { x: 75, y: 100 },
     };
 
     gameGrid.gridGraphic.beginFill('#FFF9F9');
     gameGrid.gridGraphic.drawRect(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y, gameGrid.size, gameGrid.size);
     //draw squares
-    for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 9; j++) {
+    let numDrawn = 0;
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (numDrawn % 2 == 0) gameGrid.gridGraphic.beginFill('#D0EFB1');
+            else gameGrid.gridGraphic.beginFill('#B3D89C');
+            gameGrid.gridGraphic.drawRect(gameGrid.topLeftCorner.x + gameGrid.size / 3 * j, gameGrid.topLeftCorner.y + gameGrid.size / 3 * i, gameGrid.size / 3, gameGrid.size / 3);
+            numDrawn++;
         }
     }
 
@@ -145,9 +150,6 @@ texturesPromise.then((textures) => {
 
     app.stage.addChild(gameGrid.gridGraphic);
     //#endregion
-
-    let testSprite = new BlockSprite(600, 600, blockShapes.block13, textures.block13, onDragStart)
-    // let testSprite = new BlockSprite(gameGrid.topLeftCorner.x -50 + CELLSIZE * 4,  gameGrid.topLeftCorner.y-25  + CELLSIZE * 2, blockShapes.block13, textures.block13, onDragStart)
 
     //#region Move blocks
     let dragTarget = null;
@@ -178,4 +180,14 @@ texturesPromise.then((textures) => {
         }
     }
     //#endregion
+
+    const playableBlockPositions = {
+        x1: gameGrid.topLeftCorner.x + CELLSIZE - 10,
+        x2: gameGrid.topLeftCorner.x + CELLSIZE * 4.5,
+        x3: gameGrid.topLeftCorner.x + CELLSIZE * 8 + 10,
+        y: gameGrid.topLeftCorner.y + gameGrid.size + CELLSIZE * 2.5
+    }
+    let testSprite1 = new BlockSprite(playableBlockPositions.x1, playableBlockPositions.y, blockShapes.block7, textures.block7, onDragStart);
+    let testSprite2 = new BlockSprite(playableBlockPositions.x2, playableBlockPositions.y, blockShapes.block16, textures.block16, onDragStart);
+    let testSprite3 = new BlockSprite(playableBlockPositions.x3, playableBlockPositions.y, blockShapes.block2, textures.block2, onDragStart);
 });
