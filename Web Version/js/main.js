@@ -7,197 +7,141 @@ const WIDTH = app.view.width;
 const HEIGHT = app.view.height;
 const CELLSIZE = 50; //px
 
-const blockShapes = [
-    [//numForms: 1
+const blockShapes = {
+    'CELL': [//numForms: 1
         [1]
     ],
-    [//numForms: 2
-        [1],
-        [1]
-    ],
-    [//numForms: 2
-        [1],
+    'block1': [//numForms: 2
         [1],
         [1]
     ],
-    [//numForms: 2
-        [1],
+    'block2': [//numForms: 2
         [1],
         [1],
         [1]
     ],
-    [//numForms: 2
-        [1],
+    'block3': [//numForms: 2
         [1],
         [1],
         [1],
         [1]
     ],
-    [//numForms: 2
+    'block4': [//numForms: 2
+        [1],
+        [1],
+        [1],
+        [1],
+        [1]
+    ],
+    'block5': [//numForms: 2
         [0, 1],
         [1, 0]
     ],
-    [//numForms: 2
+    'block6': [//numForms: 2
         [0, 0, 1],
         [0, 1, 0],
         [1, 0, 0]
     ],
-    [//numForms: 4
+    'block7': [//numForms: 4
         [1, 0],
         [1, 1]
     ],
-    [//numForms: 4
+    'block8': [//numForms: 4
+        [1, 1, 1],
         [1, 0, 0],
-        [1, 0, 0],
-        [1, 1, 1]
+        [1, 0, 0]
     ],
-    [//numForms: 4
+    'block9': [//numForms: 4
         [1, 1, 1],
         [0, 1, 0],
         [0, 1, 0]
     ],
-    [//numForms: 4
+    'block10': [//numForms: 4
         [0, 1, 0],
         [1, 1, 1]
     ],
-    [//numForms: 4
+    'block11': [//numForms: 4
         [1, 1],
         [1, 0],
         [1, 1]
     ],
-    [//numForms: 4
+    'block12': [//numForms: 4
         [1, 0],
         [1, 0],
         [1, 1]
     ],
-    [//numForms: 4
+    'block13': [//numForms: 4
         [0, 1],
         [0, 1],
         [1, 1]
     ],
-    [//numForms: 4
+    'block14': [//numForms: 4
         [1, 1, 0],
         [0, 1, 1]
     ],
-    [//numForms: 4
+    'block15': [//numForms: 4
         [0, 1, 1],
         [1, 1, 0]
     ],
-    [//numForms: 1
+    'block16': [//numForms: 1
         [0, 1, 0],
         [1, 1, 1],
         [0, 1, 0]
     ],
-    [//numForms: 1
+    'block17': [//numForms: 1
         [1, 1],
         [1, 1]
     ]
-];
+};
 //#endregion
 
-let gameGrid = new PIXI.Container();
-
-class Cell extends PIXI.Graphics {
-    constructor(x = 0, y = 0, fillColor = '#F08080', borderColor = '#F4478E', size = CELLSIZE) {
-        super();
-
-        this.x = x;
-        this.y = y;
-        this.beginFill(fillColor);
-        this.lineStyle(4, borderColor, 1);
-        this.drawRect(x, y, size, size);
-        this.endFill();
-    }
+let shapeKeys = Object.keys(blockShapes);
+for (let i = 0; i < shapeKeys.length; i++) {
+    //console.log(shapeKeys[i]);
+    PIXI.Assets.add({
+        alias: shapeKeys[i],
+        src: './assets/' + shapeKeys[i] + '.png'
+    });
 }
 
-class Block extends PIXI.Graphics {
-    constructor(x = 0, y = 0, shape, numPossForms = 1, currentForm = 1) {
-        super();
+let texturesPromise = PIXI.Assets.load(shapeKeys);
+texturesPromise.then((textures) => {
+    //#region  Create game grid
+    const gameGrid = new PIXI.Graphics();
+    gameGrid.beginFill('#F7F9F7');
+    gameGrid.drawRect(75, 75, 50, 50);
+    app.stage.addChild(gameGrid);
+    //#endregion
 
-        this.x = x;
-        this.y = y;
+    let testSprite = new BlockSprite(app.screen.width / 2, app.screen.height / 2, blockShapes.block13, textures.block13, onDragStart)
 
-        this.shape = shape;
+    //#region Move blocks
+    let dragTarget = null;
+    app.stage.eventMode = 'static';
+    app.stage.hitArea = app.screen;
+    app.stage.on('pointerup', onDragEnd);
+    app.stage.on('pointerupoutside', onDragEnd);
 
-        this.numPossForms = numPossForms; // # of possible forms through 90deg rotations
-
-        this.currentForm = currentForm; // the current shape after being rotated 90Deg currentForm-1 times
-        if (this.currentForm < 1) this.currentForm = 1;
-
-        this.dragging = false;
-
-        this.eventmode = 'static';
-        this.eventmode = 'static';
-        this.enableDragging();
-    }
-
-    onDragStart(e) {
-        this.data = e.data;
-        this.dragging = true;
+    function onDragStart() {
         this.alpha = 0.5;
-
-        this.x = e.data.global.x;
-        this.y = e.data.global.y;
+        dragTarget = this;
+        // console.log('dragTarget: ');
+        // console.log(dragTarget);
+        // console.log('dragTarget.parent: ');
+        // console.log(dragTarget.parent);
+        app.stage.on('pointermove', onDragMove);
     }
 
-    onDragEnd(e) {
-        this.x = e.data.global.x;
-        this.y = e.data.global.y;
-        this.dragging = false;
-        this.alpha = 1;
-        this.data = null;
+    function onDragMove(e) {
+        if (dragTarget) dragTarget.parent.toLocal(e.global, null, dragTarget.position);
     }
 
-    onDragMove(e) {
-        if (this.dragging) {
-            this.x = e.data.global.x;
-            this.y = e.data.global.y;
+    function onDragEnd() {
+        if (dragTarget) {
+            app.stage.off('pointermove', onDragMove);
+            dragTarget.alpha = 1;
+            dragTarget = null;
         }
     }
-
-    enableDragging() {
-        this.interactive = true;
-        this.on('pointerdown', this.onDragStart)
-            .on('pointerup', this.onDragEnd)
-            .on('pointerupoutside', this.onDragEnd)
-            .on('pointermove', this.onDragMove);
-    }
-
-    disableDragging() {
-        this.interactive = true;
-        this.off('pointerdown', this.onDragStart)
-            .off('pointerup', this.onDragEnd)
-            .off('pointerupoutside', this.onDragEnd)
-            .off('pointermove', this.onDragMove);
-    }
-
-    drawBlock() {
-        for (let i = 0; i < this.shape.length; i++) {
-            for (let j = 0; j < this.shape[i].length; j++) {
-                if (this.shape[i][j] != 0) {
-                    let cell = new Cell(i * CELLSIZE / 2, j * CELLSIZE / 2, '#F694C1', '#E4C1F9');
-                    this.addChild(cell);
-                }
-            }
-        }
-        app.stage.addChild(this);
-    }
-}
-
-
-
-
-
-let testCell = new Cell(36, 174, '#B0DB43', '#12EAEA', 74);
-app.stage.addChild(testCell);
-
-let testBlock = new Block(60, 50, blockShapes[14], 4);
-testBlock.drawBlock();
-console.log(testBlock);
-console.log(testBlock.shape);
-console.log(rotateBlock(testBlock, 1));
-
-let testerBlock = new Block(80, 90, testBlock.shape, 4);
-testerBlock.x = 160;
-testerBlock.y = 280;
-testerBlock.drawBlock();
+    //#endregion
+});
