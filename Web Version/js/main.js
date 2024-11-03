@@ -155,11 +155,13 @@ texturesPromise.then((textures) => {
     //#region game grid
     let gameGrid = {
         size: CELLSIZE * 9,
+        gridContainer: new PIXI.Container(),
         gridGraphic: new PIXI.Graphics,
         gridArray: Array(9).fill().map(() => Array(9).fill(0)),
         cellArray: [[], [], [], [], [], [], [], [], []],
         topLeftCorner: { x: 75, y: 100 },
     };
+    app.stage.addChild(gameGrid.gridContainer);
 
     // drawcells
     for (let i = 0; i < 9; i++) {
@@ -168,49 +170,55 @@ texturesPromise.then((textures) => {
 
             let cell = new PIXI.Graphics();
             cell.beginFill(currentColor);
-            cell.drawRect(gameGrid.topLeftCorner.x + (CELLSIZE * j), gameGrid.topLeftCorner.y + (CELLSIZE * i), CELLSIZE, CELLSIZE);
+            cell.drawRect(gameGrid.topLeftCorner.x + (CELLSIZE * i), gameGrid.topLeftCorner.y + (CELLSIZE * j), CELLSIZE, CELLSIZE);
             cell.endFill();
+            cell.pivot =
 
-            gameGrid.cellArray[i][j] = cell;
-            app.stage.addChild(cell);
+                gameGrid.cellArray[i][j] = cell;
+            gameGrid.gridContainer.addChild(cell);
         }
     }
+    gameGrid.gridContainer.addChild(gameGrid.gridGraphic);
 
     //draw lines
-    gameGrid.gridGraphic.lineStyle(10, '#000000', 1);
-    gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y - 5);
-    gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y - 5);
-    gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + gameGrid.size + 5);
-    gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + gameGrid.size + 5);
-    gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y - 10);
-    gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
-    gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y - 10);
-    gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
-    gameGrid.gridGraphic.lineStyle(1, '#000000', 1);
+    let lines = new PIXI.Graphics();
+    lines.lineStyle(10, '#000000', 1);
+    lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y - 5);
+    lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y - 5);
+    lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + gameGrid.size + 5);
+    lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + gameGrid.size + 5);
+    lines.moveTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y - 10);
+    lines.lineTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
+    lines.moveTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y - 10);
+    lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
+    lines.lineStyle(1, '#000000', 1);
     for (let i = 1; i < 9; i++) {
-        gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + CELLSIZE * i);
-        gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + CELLSIZE * i);
+        lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + CELLSIZE * i);
+        lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + CELLSIZE * i);
         for (let j = 1; j < 9; j++) {
-            gameGrid.gridGraphic.moveTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y);
-            gameGrid.gridGraphic.lineTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y + gameGrid.size);
+            lines.moveTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y);
+            lines.lineTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y + gameGrid.size);
         }
     }
+    app.stage.addChild(lines);
 
-    app.stage.addChild(gameGrid.gridGraphic);
+    gameGrid.gridContainer.eventMode = 'static';
+    //#endregion
 
+    //#region playable blocks
     const playableBlockPositions = {
         x1: gameGrid.topLeftCorner.x + CELLSIZE - 10,
         x2: gameGrid.topLeftCorner.x + CELLSIZE * 4.5,
         x3: gameGrid.topLeftCorner.x + CELLSIZE * 8 + 10,
         y: gameGrid.topLeftCorner.y + gameGrid.size + CELLSIZE * 2
     }
-    //#endregion
 
-    //#region playable blocks
     for (let i = 0; i < 3; i++) {
         let randomNum = getRandomInt(0, SHAPEKEYS.length);
         let positionKey = Object.keys(playableBlockPositions)[i];
         let newBlock = new BlockSprite(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[SHAPEKEYS[randomNum]].shape, textures[SHAPEKEYS[randomNum]], onDragStart)
+
+        newBlock.sprite.scale = new PIXI.Point(0.35, 0.35);
         playableBlocks.push(newBlock);
     }
     //#endregion
@@ -223,38 +231,74 @@ texturesPromise.then((textures) => {
     app.stage.on('pointerupoutside', onDragEnd);
 
     function onDragStart() {
-        this.alpha = 0.5;
-        dragTarget = this.sprite;
-        dragTarget.scale = new PIXI.Point(0.5, 0.5);
+        dragTarget = this;
+        dragTarget.sprite.alpha = 0.8;
+        dragTarget.sprite.scale = new PIXI.Point(0.49, 0.49);
         app.stage.on('pointermove', onDragMove);
     }
 
     function onDragMove(e) {
         if (dragTarget) {
-            dragTarget.parent.toLocal(e.global, null, dragTarget.position);
+            dragTarget.sprite.parent.toLocal(e.global, null, dragTarget.sprite.position);
+
+            if (rectsIntersect(dragTarget.sprite, gameGrid.gridContainer)) {
+                //dragTarget.sprite.tint = '#ff2d00';
+                getNearestSpot(dragTarget);
+            }
+            else {
+                dragTarget.sprite.tint = 0xFFFFFF;
+            }
         }
     }
 
     function onDragEnd() {
         if (dragTarget) {
             app.stage.off('pointermove', onDragMove);
-            dragTarget.alpha = 1;
+            dragTarget.sprite.alpha = 1;
 
-            dragTarget.scale = new PIXI.Point(0.35, 0.35);
+            dragTarget.sprite.scale = new PIXI.Point(0.35, 0.35);
+            dragTarget.sprite.alpha = 1;
+            dragTarget.sprite.tint = 0xFFFFFF;
 
             dragTarget = null;
         }
     }
 
-    function getNearestSpot(blockSprite) {
+    function getNearestSpot(block) {
+        // Get the top-left corner of the block
+        let topCorner = { x: 0, y: 0 };
+        // top corner of sprite
+        topCorner.x = Math.floor(block.sprite.x - block.width / 2);
+        topCorner.y = Math.floor(block.sprite.y - block.height / 2);
 
+        // console.log(topCorner);
+
+        // Calculate the nearest grid cell coordinates
+        let nearestGridCell = { x: 0, y: 0 };
+        nearestGridCell.x = Math.floor(topCorner.x / CELLSIZE);
+        nearestGridCell.y = Math.floor(topCorner.y / CELLSIZE);
+
+        // console.log(nearestGridCell);
+
+
+        console.log();
+        if (isPlaceable(block)) {
+
+        }
     }
 
-    function snapBlockToGrid(blockSprite) {
+    function snapBlockToGrid(block) {
         // Calculate the nearest grid cell based on the block’s current position.
         // Check if the target position on the board is unoccupied and within bounds.
 
+        dragTarget.sprite.scale = new PIXI.Point(0.5, 0.5);
+        dragTarget.sprite.alpha = 1;
+        dragTarget.sprite.tint = 0xFFFFFF;
         this.blockSprite.disableInteractivity();
+    }
+
+    function isPlaceable(block) {
+        return false;
     }
     //#endregion
 

@@ -1,6 +1,7 @@
 # Blockudoku Web Version
 
 [Check it out!](https://people.rit.edu/aam6039/Blockudoku/index.html)
+* [Based on this game by EasyBrain](https://play.google.com/store/apps/details?id=com.easybrain.block.puzzle.games&hl=en_US&pli=1)
 
 ## Resources
 * [Pixi.js GitHub](https://github.com/pixijs/pixijs)

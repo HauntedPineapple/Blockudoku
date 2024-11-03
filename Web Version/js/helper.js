@@ -5,6 +5,17 @@ function rectsIntersect(a, b) {
     return ab.x + ab.width > bb.x && ab.x < bb.x + bb.width && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
 }
 
+/**
+ * 
+ * @param {*} a see if this obj is inside (or out)
+ * @param {*} b see if a is inside this rect
+ */
+function isFullyInside(a, b) {
+    let ab = a.getBounds();
+    let bb = b.getBounds();
+    return bb.x <= ab.x && bb.y <= ab.y && ab.x + ab.width <= bb.x + bb.width && ab.y + ab.height <= bb.y + bb.height;
+}
+
 function calculateDistanceBetweenTwoPoints(pointA, pointB) {
     let xx = pointA.x - pointB.x;
     let yy = pointA.y - pointB.y;
