@@ -11,19 +11,18 @@ class Block extends PIXI.Container {
         this.normalForm = new PIXI.Container();
         this.draggingForm = new PIXI.Container();
         this.currentForm = 'normal';
-
+        
         this.dragFunc = dragFunc;
-        this.isDragging = false;
         this.enableInteractivity();
-
+        
         this.value = 0;
         for (let i = 0; i < this.shape.length; i++)
             for (let j = 0; j < this.shape[0].length; j++)
-                if (this.shape[i][j] == 1) this.value++;
-
+        if (this.shape[i][j] == 1) this.value++;
+        
         this.makeBlock();
         this.randomizeRotation();
-        this.scale = new PIXI.Point(0.7, 0.7);
+
     }
 
     makeBlock() {
@@ -36,6 +35,7 @@ class Block extends PIXI.Container {
                     cell.drawRect(i * CELLSIZE, j * CELLSIZE, CELLSIZE, CELLSIZE);
                     cell.endFill();
 
+                    this.normalForm.scale = new PIXI.Point(0.65, 0.65);
                     this.normalForm.addChild(cell);
                 }
             }
@@ -61,14 +61,8 @@ class Block extends PIXI.Container {
         }
         this.addChild(this.draggingForm);
         this.draggingForm.visible = false;
-    }
 
-    randomizeRotation() {
-        let randomNum = getRandomInt(1, this.numPossRots + 1);
-        if (randomNum != 1) {
-            for(let i=0;i<randomNum;i++)
-                this.rotateBlock();
-        }
+        this.boundsArea=new PIXI.Rectangle(0,0,CELLSIZE * 0.8,CELLSIZE * 0.8);
     }
 
     changeForms(toNormal = true) {
@@ -81,6 +75,14 @@ class Block extends PIXI.Container {
             this.currentForm = 'dragging';
             this.normalForm.visible = false;
             this.draggingForm.visible = true;
+        }
+    }
+
+    randomizeRotation() {
+        let randomNum = getRandomInt(0, this.numPossRots);
+        if (randomNum > 0) {
+            for (let i = 0; i < randomNum; i++)
+                this.rotateBlock();
         }
     }
 

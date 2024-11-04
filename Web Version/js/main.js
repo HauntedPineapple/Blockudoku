@@ -7,10 +7,26 @@ window.__PIXI_DEVTOOLS__ = { app: app };
 const WIDTH = app.view.width;
 const HEIGHT = app.view.height;
 
+//#region
 let score = 0;
 // let startScene, gameScene, gameOverScene;
 // let startGameButton, startOverButton;
 // let gameOverText;
+
+// function setup(){
+//     let startScene=new PIXI.Container();
+//     let gameScene=new PIXI.Container();
+//     let gameOverScene=new PIXI.Container();
+
+//     app.stage.addChild(startScene);
+//     app.stage.addChild(gameScene);
+//     app.stage.addChild(gameOverScene);
+
+//     startScene.visible=true;
+//     gameScene.visible=false;
+//     gameOverScene.visible=false;
+// }
+//#endregion
 
 //#region game grid
 let gameGrid = {
@@ -75,7 +91,6 @@ function onDragStart() {
     dragTarget = this;
 
     dragTarget.alpha = 0.6;
-    dragTarget.scale = new PIXI.Point(1, 1);
     dragTarget.changeForms(false);
     app.stage.on('pointermove', onDragMove);
 }
@@ -85,53 +100,71 @@ function onDragMove(e) {
         dragTarget.parent.toLocal(e.global, null, dragTarget.position);
 
         if (isInGrid(dragTarget)) {
-            getNearestSpot(dragTarget.draggingForm);
+            getNearestSpot(dragTarget);
         }
         else {
         }
     }
 }
 
-function isInGrid(block) {
-    let ab = block.draggingForm.getBounds();
-    let bb = gameGrid.gridContainer.getBounds();
-    return ab.x + ab.width > bb.x && ab.x < bb.x + bb.width && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
-}
-
 function onDragEnd() {
     if (dragTarget) {
         app.stage.off('pointermove', onDragMove);
         dragTarget.alpha = 1;
-        dragTarget.scale = new PIXI.Point(0.8, 0.8);
         dragTarget.changeForms();
 
         dragTarget = null;
     }
 }
 
+function isInGrid(block) {
+    let ab = block.getBounds();
+    let bb = gameGrid.gridContainer.getBounds();
+    return ab.x + ab.width > bb.x && ab.x < bb.x + bb.width && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
+}
+
 function getNearestSpot(block) {
     // Get the top-left corner of the block
     let topCorner = { x: 0, y: 0 };
-    topCorner.x = Math.floor(block.getGlobalPosition().x);
-    topCorner.y = Math.floor(block.getGlobalPosition().y);
+    topCorner.x = Math.floor(block.getBounds().x);
+    topCorner.y = Math.floor(block.getBounds().y);
 
     console.log(topCorner);
 
     // Calculate the nearest grid cell
     let nearestGridCell = { x: 0, y: 0 };
     nearestGridCell.x = Math.floor(topCorner.x / CELLSIZE);
-    nearestGridCell.y = Math.floor(topCorner.y / CELLSIZE);
+    nearestGridCell.y = Math.floor(topCorner.y / CELLSIZE)-1;
 
     console.log(nearestGridCell);
+
+    let hoveredGridCells = Array(block.shape.length).fill().map(() => Array(block.shape[0].length).fill([-1, -1]));
+
+    //isPlaceable(block, nearestGridCell.x, nearestGridCell.y);
 }
 
-function isPlaceable(block) {
-    return false;
+function isPlaceable(block, gridRow, gridCol) {
+    console.log('===');
+    for (let i = 0; i < block.shape.length; i++) {
+        for (let j = 0; j < block.shape[0].length; j++) {
+            if (block.shape[i][j] == 1) {
+                let boardPlace = {
+                    x: gridRow + i,
+                    y: gridCol + j
+                };
+
+                console.log(boardPlace);
+            }
+        }
+    }
+
+    return true;
 }
 
 function snapBlockToGrid(block) {
+
+
     this.block.changeForms();
-    this.block.scale = new PIXI.Point(1, 1);
     this.block.alpha = 1;
     this.block.disableInteractivity();
 }
