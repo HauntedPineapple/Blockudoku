@@ -1,3 +1,106 @@
+class Block extends PIXI.Container {
+    constructor(x = 0, y = 0, shapeObj, dragFunc) {
+        super();
+
+        this.x = x;
+        this.y = y;
+
+        this.shape = shapeObj.shape;
+        this.numPossRots = shapeObj.numForms; // # of possible forms through 90deg rotations
+
+        this.normalForm = new PIXI.Container();
+        this.draggingForm = new PIXI.Container();
+        this.currentForm = 'normal';
+
+        this.dragFunc = dragFunc;
+        this.isDragging = false;
+        this.enableInteractivity();
+
+        this.value = 0;
+        for (let i = 0; i < this.shape.length; i++)
+            for (let j = 0; j < this.shape[0].length; j++)
+                if (this.shape[i][j] == 1) this.value++;
+
+        this.makeBlock();
+        this.randomizeRotation();
+        this.scale = new PIXI.Point(0.7, 0.7);
+    }
+
+    makeBlock() {
+        for (let i = 0; i < this.shape[0].length; i++) {
+            for (let j = 0; j < this.shape.length; j++) {
+                if (this.shape[j][i] != 0) {
+                    let cell = new PIXI.Graphics();
+                    cell.beginFill('#64B6AC');
+                    cell.lineStyle(4, '#5D737E', 1);
+                    cell.drawRect(i * CELLSIZE, j * CELLSIZE, CELLSIZE, CELLSIZE);
+                    cell.endFill();
+
+                    this.normalForm.addChild(cell);
+                }
+            }
+        }
+        this.addChild(this.normalForm);
+        this.normalForm.visible = true;
+
+        this.pivot.x = this.width / 2;
+        this.pivot.y = this.height / 2;
+
+        for (let i = 0; i < this.shape[0].length; i++) {
+            for (let j = 0; j < this.shape.length; j++) {
+                if (this.shape[j][i] != 0) {
+                    let cell = new PIXI.Graphics();
+                    cell.beginFill('#64B6AC');
+                    cell.lineStyle(4, '#5D737E', 1);
+                    cell.drawRect(i * CELLSIZE, j * CELLSIZE, CELLSIZE * 0.8, CELLSIZE * 0.8);
+                    cell.endFill();
+
+                    this.draggingForm.addChild(cell);
+                }
+            }
+        }
+        this.addChild(this.draggingForm);
+        this.draggingForm.visible = false;
+    }
+
+    randomizeRotation() {
+        let randomNum = getRandomInt(1, this.numPossRots + 1);
+        if (randomNum != 1) {
+            for(let i=0;i<randomNum;i++)
+                this.rotateBlock();
+        }
+    }
+
+    changeForms(toNormal = true) {
+        if (toNormal) {
+            this.currentForm = 'normal';
+            this.normalForm.visible = true;
+            this.draggingForm.visible = false;
+        }
+        else {
+            this.currentForm = 'dragging';
+            this.normalForm.visible = false;
+            this.draggingForm.visible = true;
+        }
+    }
+
+    rotateBlock() {
+        this.rotation += Math.PI / 2;
+        rotateBlock(this);
+    }
+
+    enableInteractivity() {
+        this.interactive = true;
+        this.eventMode = 'static';
+        this.on('pointerdown', this.dragFunc, this);
+    }
+
+    disableInteractivity() {
+        this.interactive = false;
+        this.off('pointerdown', this.dragFunc, this);
+    }
+}
+
 class BlockSprite {
     constructor(x = 0, y = 0, shape, texture, dragFunc, numPossForms = 1, currentForm = 1) {
         this.numPossForms = numPossForms; // # of possible forms through 90deg rotations
@@ -50,88 +153,3 @@ class BlockSprite {
         this.sprite.destroy();
     }
 }
-
-
-// Stinky code below
-
-// class Cell extends PIXI.Graphics {
-//     constructor(x = 0, y = 0, fillColor, size = CELLSIZE) {
-//         super();
-
-//         this.x = x;
-//         this.y = y;
-//         this.beginFill(fillColor);
-//         this.drawRect(x, y, size, size);
-//         this.endFill();
-//     }
-// }
-
-// class Block extends PIXI.Graphics {
-    //     constructor(x = 0, y = 0, shape, numPossForms = 1, currentForm = 1) {
-//         super();
-
-//         this.x = x;
-//         this.y = y;
-//         this.shape = shape;
-//         this.numPossForms = numPossForms; // # of possible forms through 90deg rotations
-//         this.currentForm = currentForm; // the current shape after being rotated 90Deg currentForm-1 times
-//         if (this.currentForm < 1) this.currentForm = 1;
-
-//         this.eventmode = 'static';
-//         this.enableDragging();
-//         this.isDragging = false;
-
-//     }
-
-//     onDragStart(e) {
-//         // console.log("START");
-//         console.log('this: ');
-//         console.log(this);
-//         console.log('this.parent: ');
-//         console.log(this.parent);
-//         this.isDragging = true;
-//         this.alpha = 0.5;
-//     }
-
-//     onDragEnd(e) {
-//         // console.log("END");
-//         this.isDragging = false;
-//         this.alpha = 1;
-//     }
-
-//     onDragMove(e) {
-//         // console.log("MOVE");
-//         if (this.isDragging) {
-//             // console.log(this.parent.toLocal(e.global));
-//             this.x = this.parent.toLocal(e.global).x;
-//             this.y = this.parent.toLocal(e.global).y;
-//         }
-//     }
-
-//     enableDragging() {
-//         this.interactive = true;
-//         this.on('pointerdown', this.onDragStart)
-//             .on('pointerup', this.onDragEnd)
-//             .on('pointermove', this.onDragMove)
-//             .on('pointerupoutside', this.onDragEnd);
-//     }
-//     disableDragging() {
-//         this.interactive = false;
-//         this.off('pointerdown', this.onDragStart)
-//             .off('pointerup', this.onDragEnd)
-//             .off('pointermove', this.onDragMove)
-//             .off('pointerupoutside', this.onDragEnd);
-//     }
-
-//     drawBlock() {
-//         for (let i = 0; i < this.shape.length; i++) {
-//             for (let j = 0; j < this.shape[i].length; j++) {
-//                 if (this.shape[i][j] != 0) {
-//                     let cell = new Cell(i * CELLSIZE / 2, j * CELLSIZE / 2);
-//                     this.addChild(cell);
-//                 }
-//             }
-//         }
-//         app.stage.addChild(this);
-//     }
-// }

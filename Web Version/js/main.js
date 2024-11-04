@@ -1,423 +1,266 @@
 "use strict";
-const app = new PIXI.Application({ 'width': 600, 'height': 900, 'backgroundColor': '#FCFCF4' });
+const app = new PIXI.Application({ 'width': 800, 'height': 900, 'backgroundColor': '#FCFCF4' });
 document.body.querySelector("#pixicanvas").appendChild(app.view);
 
 window.__PIXI_DEVTOOLS__ = { app: app };
 
 const WIDTH = app.view.width;
 const HEIGHT = app.view.height;
-const CELLSIZE = 50; //px
-
-const BLOCKSHAPES = {
-    'CELL': {
-        shape: [
-            [1]
-        ], numForms: 1
-    },
-    'block1': {
-        shape: [
-            [1],
-            [1]
-        ], numForms: 2
-    },
-    'block2': {
-        shape: [
-            [1],
-            [1],
-            [1]
-        ],
-        numForms: 2
-    },
-    'block3': {
-        shape: [
-            [1],
-            [1],
-            [1],
-            [1]
-        ], numForms: 2
-    },
-    'block4': {
-        shape: [
-            [1],
-            [1],
-            [1],
-            [1],
-            [1]
-        ], numForms: 2
-    },
-    'block5': {
-        shape: [
-            [0, 1],
-            [1, 0]
-        ], numForms: 2
-    },
-    'block6': {
-        shape: [
-            [0, 0, 1],
-            [0, 1, 0],
-            [1, 0, 0]
-        ], numForms: 2
-    },
-    'block7': {
-        shape: [
-            [1, 0],
-            [1, 1]
-        ], numForms: 4
-    },
-    'block8': {
-        shape: [
-            [1, 1, 1],
-            [1, 0, 0],
-            [1, 0, 0]
-        ], numForms: 4
-    },
-    'block9': {
-        shape: [
-            [1, 1, 1],
-            [0, 1, 0],
-            [0, 1, 0]
-        ], numForms: 4
-    },
-    'block10': {
-        shape: [
-            [0, 1, 0],
-            [1, 1, 1]
-        ], numForms: 4
-    },
-    'block11': {
-        shape: [
-            [1, 1],
-            [1, 0],
-            [1, 1]
-        ], numForms: 4
-    },
-    'block12': {
-        shape: [
-            [1, 0],
-            [1, 0],
-            [1, 1]
-        ], numForms: 4
-    },
-    'block13': {
-        shape: [
-            [0, 1],
-            [0, 1],
-            [1, 1]
-        ], numForms: 4
-    },
-    'block14': {
-        shape: [
-            [1, 1, 0],
-            [0, 1, 1]
-        ], numForms: 4
-    },
-    'block15': {
-        shape: [
-            [0, 1, 1],
-            [1, 1, 0]
-        ], numForms: 4
-    },
-    'block16': {
-        shape: [
-            [0, 1, 0],
-            [1, 1, 1],
-            [0, 1, 0]
-        ], numForms: 1
-    },
-    'block17': {
-        shape: [
-            [1, 1],
-            [1, 1]
-        ], numForms: 1
-    },
-};
-const SHAPEKEYS = Object.keys(BLOCKSHAPES);
-
-for (let i = 0; i < SHAPEKEYS.length; i++) {
-    //console.log(SHAPEKEYS[i]);
-    PIXI.Assets.add({
-        alias: SHAPEKEYS[i],
-        src: './assets/' + SHAPEKEYS[i] + '.png'
-    });
-}
 
 let score = 0;
 // let startScene, gameScene, gameOverScene;
 // let startGameButton, startOverButton;
 // let gameOverText;
-let blocksOnGrid = [];
+
+//#region game grid
+let gameGrid = {
+    size: CELLSIZE * 9,
+    gridContainer: new PIXI.Container(),
+    gridGraphic: new PIXI.Graphics,
+    gridArray: Array(9).fill().map(() => Array(9).fill(0)),
+    cellArray: [[], [], [], [], [], [], [], [], []],
+    topLeftCorner: { x: 75, y: 100 },
+};
+app.stage.addChild(gameGrid.gridContainer);
+
+// drawcells
+for (let i = 0; i < 9; i++) {
+    for (let j = 0; j < 9; j++) {
+        let currentColor = Math.floor(i / 3) % 2 === Math.floor(j / 3) % 2 ? '#D0EFB1' : '#B3D89C';
+
+        let cell = new PIXI.Graphics();
+        cell.beginFill(currentColor);
+        cell.drawRect(gameGrid.topLeftCorner.x + (CELLSIZE * j), gameGrid.topLeftCorner.y + (CELLSIZE * i), CELLSIZE, CELLSIZE);
+        cell.endFill();
+
+        gameGrid.cellArray[j][i] = cell;
+        gameGrid.gridContainer.addChild(cell);
+    }
+}
+gameGrid.gridContainer.addChild(gameGrid.gridGraphic);
+
+//draw lines
+let lines = new PIXI.Graphics();
+lines.lineStyle(10, '#000000', 1);
+lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y - 5);
+lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y - 5);
+lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + gameGrid.size + 5);
+lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + gameGrid.size + 5);
+lines.moveTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y - 10);
+lines.lineTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
+lines.moveTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y - 10);
+lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
+lines.lineStyle(1, '#000000', 1);
+for (let i = 1; i < 9; i++) {
+    lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + CELLSIZE * i);
+    lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + CELLSIZE * i);
+    for (let j = 1; j < 9; j++) {
+        lines.moveTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y);
+        lines.lineTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y + gameGrid.size);
+    }
+}
+app.stage.addChild(lines);
+
+gameGrid.gridContainer.eventMode = 'static';
+//#endregion
+
+//#region movement
+let dragTarget = null;
+app.stage.eventMode = 'static';
+app.stage.hitArea = app.screen;
+app.stage.on('pointerup', onDragEnd);
+app.stage.on('pointerupoutside', onDragEnd);
+
+function onDragStart() {
+    dragTarget = this;
+
+    dragTarget.alpha = 0.6;
+    dragTarget.scale = new PIXI.Point(1, 1);
+    dragTarget.changeForms(false);
+    app.stage.on('pointermove', onDragMove);
+}
+
+function onDragMove(e) {
+    if (dragTarget) {
+        dragTarget.parent.toLocal(e.global, null, dragTarget.position);
+
+        if (isInGrid(dragTarget)) {
+            getNearestSpot(dragTarget.draggingForm);
+        }
+        else {
+        }
+    }
+}
+
+function isInGrid(block) {
+    let ab = block.draggingForm.getBounds();
+    let bb = gameGrid.gridContainer.getBounds();
+    return ab.x + ab.width > bb.x && ab.x < bb.x + bb.width && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
+}
+
+function onDragEnd() {
+    if (dragTarget) {
+        app.stage.off('pointermove', onDragMove);
+        dragTarget.alpha = 1;
+        dragTarget.scale = new PIXI.Point(0.8, 0.8);
+        dragTarget.changeForms();
+
+        dragTarget = null;
+    }
+}
+
+function getNearestSpot(block) {
+    // Get the top-left corner of the block
+    let topCorner = { x: 0, y: 0 };
+    topCorner.x = Math.floor(block.getGlobalPosition().x);
+    topCorner.y = Math.floor(block.getGlobalPosition().y);
+
+    console.log(topCorner);
+
+    // Calculate the nearest grid cell
+    let nearestGridCell = { x: 0, y: 0 };
+    nearestGridCell.x = Math.floor(topCorner.x / CELLSIZE);
+    nearestGridCell.y = Math.floor(topCorner.y / CELLSIZE);
+
+    console.log(nearestGridCell);
+}
+
+function isPlaceable(block) {
+    return false;
+}
+
+function snapBlockToGrid(block) {
+    this.block.changeForms();
+    this.block.scale = new PIXI.Point(1, 1);
+    this.block.alpha = 1;
+    this.block.disableInteractivity();
+}
+//#endregion
+
+//#region playable blocks
+const playableBlockPositions = {
+    x1: gameGrid.topLeftCorner.x + CELLSIZE - 10,
+    x2: gameGrid.topLeftCorner.x + CELLSIZE * 4.5,
+    x3: gameGrid.topLeftCorner.x + CELLSIZE * 8 + 10,
+    y: gameGrid.topLeftCorner.y + gameGrid.size + CELLSIZE * 2
+}
+
 let playableBlocks = [];
 
-//app.ticker.add((delta) => {});
-
-let texturesPromise = PIXI.Assets.load(SHAPEKEYS);
-texturesPromise.then((textures) => {
-    //#region game grid
-    let gameGrid = {
-        size: CELLSIZE * 9,
-        gridContainer: new PIXI.Container(),
-        gridGraphic: new PIXI.Graphics,
-        gridArray: Array(9).fill().map(() => Array(9).fill(0)),
-        cellArray: [[], [], [], [], [], [], [], [], []],
-        topLeftCorner: { x: 75, y: 100 },
-    };
-    app.stage.addChild(gameGrid.gridContainer);
-
-    // drawcells
-    for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 9; j++) {
-            let currentColor = Math.floor(i / 3) % 2 === Math.floor(j / 3) % 2 ? '#D0EFB1' : '#B3D89C';
-
-            let cell = new PIXI.Graphics();
-            cell.beginFill(currentColor);
-            cell.drawRect(gameGrid.topLeftCorner.x + (CELLSIZE * i), gameGrid.topLeftCorner.y + (CELLSIZE * j), CELLSIZE, CELLSIZE);
-            cell.endFill();
-            cell.pivot =
-
-                gameGrid.cellArray[i][j] = cell;
-            gameGrid.gridContainer.addChild(cell);
-        }
-    }
-    gameGrid.gridContainer.addChild(gameGrid.gridGraphic);
-
-    //draw lines
-    let lines = new PIXI.Graphics();
-    lines.lineStyle(10, '#000000', 1);
-    lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y - 5);
-    lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y - 5);
-    lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + gameGrid.size + 5);
-    lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + gameGrid.size + 5);
-    lines.moveTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y - 10);
-    lines.lineTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
-    lines.moveTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y - 10);
-    lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
-    lines.lineStyle(1, '#000000', 1);
-    for (let i = 1; i < 9; i++) {
-        lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + CELLSIZE * i);
-        lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + CELLSIZE * i);
-        for (let j = 1; j < 9; j++) {
-            lines.moveTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y);
-            lines.lineTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y + gameGrid.size);
-        }
-    }
-    app.stage.addChild(lines);
-
-    gameGrid.gridContainer.eventMode = 'static';
-    //#endregion
-
-    //#region playable blocks
-    const playableBlockPositions = {
-        x1: gameGrid.topLeftCorner.x + CELLSIZE - 10,
-        x2: gameGrid.topLeftCorner.x + CELLSIZE * 4.5,
-        x3: gameGrid.topLeftCorner.x + CELLSIZE * 8 + 10,
-        y: gameGrid.topLeftCorner.y + gameGrid.size + CELLSIZE * 2
+function generatePlayableBlocks() {
+    for (let i = 0; i < 3; i++) {
+        let removed = playableBlocks.pop();
+        if (removed)
+            removed.destroy();
     }
 
     for (let i = 0; i < 3; i++) {
-        let randomNum = getRandomInt(0, SHAPEKEYS.length);
+        let randomNum = getRandomInt(0, Object.keys(BLOCKSHAPES).length);
+        let randomBlockKey = Object.keys(BLOCKSHAPES)[randomNum];
         let positionKey = Object.keys(playableBlockPositions)[i];
-        let newBlock = new BlockSprite(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[SHAPEKEYS[randomNum]].shape, textures[SHAPEKEYS[randomNum]], onDragStart)
 
-        newBlock.sprite.scale = new PIXI.Point(0.35, 0.35);
+        let newBlock = new Block(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[randomBlockKey], onDragStart);
+        app.stage.addChild(newBlock);
         playableBlocks.push(newBlock);
     }
-    //#endregion
+}
 
-    //#region block movement
-    let dragTarget = null;
-    app.stage.eventMode = 'static';
-    app.stage.hitArea = app.screen;
-    app.stage.on('pointerup', onDragEnd);
-    app.stage.on('pointerupoutside', onDragEnd);
+generatePlayableBlocks();
+//#endregion
 
-    function onDragStart() {
-        dragTarget = this;
-        dragTarget.sprite.alpha = 0.8;
-        dragTarget.sprite.scale = new PIXI.Point(0.49, 0.49);
-        app.stage.on('pointermove', onDragMove);
-    }
+//#region Test Buttons
+const button1 = new PIXI.Graphics();
+button1.beginFill('#EF3E36');
+button1.drawRect(100, 25, 100, 45);
+button1.eventMode = 'static';
+button1.cursor = 'pointer';
+button1.on('pointerdown', onbutton1Down)
+    .on('pointerup', onbutton1Up)
+    .on('pointerupoutside', onbutton1Up)
+    .on('pointerover', onbutton1Over)
+    .on('pointerout', onbutton1Out);
+app.stage.addChild(button1);
 
-    function onDragMove(e) {
-        if (dragTarget) {
-            dragTarget.sprite.parent.toLocal(e.global, null, dragTarget.sprite.position);
+const button1Text = new PIXI.Text("Rotate", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 24 }));
+button1Text.x = 110;
+button1Text.y = 35;
+button1.addChild(button1Text);
 
-            if (rectsIntersect(dragTarget.sprite, gameGrid.gridContainer)) {
-                //dragTarget.sprite.tint = '#ff2d00';
-                getNearestSpot(dragTarget);
-            }
-            else {
-                dragTarget.sprite.tint = 0xFFFFFF;
-            }
-        }
-    }
+function onbutton1Down(e) {
+    console.log("Button 1 says: MEOW");
+    playableBlocks.forEach(block => {
+        block.rotateBlock();
+        console.log(block.shape);
+    });
+};
+function onbutton1Up(e) {
 
-    function onDragEnd() {
-        if (dragTarget) {
-            app.stage.off('pointermove', onDragMove);
-            dragTarget.sprite.alpha = 1;
+};
+function onbutton1Over(e) {
 
-            dragTarget.sprite.scale = new PIXI.Point(0.35, 0.35);
-            dragTarget.sprite.alpha = 1;
-            dragTarget.sprite.tint = 0xFFFFFF;
+};
+function onbutton1Out(e) {
 
-            dragTarget = null;
-        }
-    }
+};
 
-    function getNearestSpot(block) {
-        // Get the top-left corner of the block
-        let topCorner = { x: 0, y: 0 };
-        // top corner of sprite
-        topCorner.x = Math.floor(block.sprite.x - block.width / 2);
-        topCorner.y = Math.floor(block.sprite.y - block.height / 2);
+const button2 = new PIXI.Graphics();
+button2.beginFill('#EF3E36');
+button2.drawRect(250, 25, 100, 45);
+button2.eventMode = 'static';
+button2.cursor = 'pointer';
+button2.on('pointerdown', onbutton2Down)
+    .on('pointerup', onbutton2Up)
+    .on('pointerupoutside', onbutton2Up)
+    .on('pointerover', onbutton2Over)
+    .on('pointerout', onbutton2Out);
+app.stage.addChild(button2);
 
-        // console.log(topCorner);
+const button2Text = new PIXI.Text("BUTTOM", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 20 }));
+button2Text.x = 260;
+button2Text.y = 35;
+button2.addChild(button2Text);
 
-        // Calculate the nearest grid cell coordinates
-        let nearestGridCell = { x: 0, y: 0 };
-        nearestGridCell.x = Math.floor(topCorner.x / CELLSIZE);
-        nearestGridCell.y = Math.floor(topCorner.y / CELLSIZE);
+function onbutton2Down(e) {
+    console.log("Button 2 says: uwu");
+};
+function onbutton2Up(e) {
 
-        // console.log(nearestGridCell);
+};
+function onbutton2Over(e) {
 
+};
+function onbutton2Out(e) {
 
-        console.log();
-        if (isPlaceable(block)) {
+};
 
-        }
-    }
+const button3 = new PIXI.Graphics();
+button3.beginFill('#EF3E36');
+button3.drawRect(400, 25, 100, 45);
+button3.eventMode = 'static';
+button3.cursor = 'pointer';
+button3.on('pointerdown', onbutton3Down)
+    .on('pointerup', onbutton3Up)
+    .on('pointerupoutside', onbutton3Up)
+    .on('pointerover', onbutton3Over)
+    .on('pointerout', onbutton3Out);
+app.stage.addChild(button3);
 
-    function snapBlockToGrid(block) {
-        // Calculate the nearest grid cell based on the block’s current position.
-        // Check if the target position on the board is unoccupied and within bounds.
+const button3Text = new PIXI.Text("New Blocks", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 16 }));
+button3Text.x = 410;
+button3Text.y = 35;
+button3.addChild(button3Text);
 
-        dragTarget.sprite.scale = new PIXI.Point(0.5, 0.5);
-        dragTarget.sprite.alpha = 1;
-        dragTarget.sprite.tint = 0xFFFFFF;
-        this.blockSprite.disableInteractivity();
-    }
+function onbutton3Down(e) {
+    console.log("Button 3 says: Hewwo");
+    generatePlayableBlocks();
+};
+function onbutton3Up(e) {
 
-    function isPlaceable(block) {
-        return false;
-    }
-    //#endregion
+};
+function onbutton3Over(e) {
 
-    //#region Test Buttons
-    const button1 = new PIXI.Graphics();
-    button1.beginFill('#EF3E36');
-    button1.drawRect(100, 25, 100, 45);
-    button1.eventMode = 'static';
-    button1.cursor = 'pointer';
-    button1.on('pointerdown', onbutton1Down)
-        .on('pointerup', onbutton1Up)
-        .on('pointerupoutside', onbutton1Up)
-        .on('pointerover', onbutton1Over)
-        .on('pointerout', onbutton1Out);
-    app.stage.addChild(button1);
+};
+function onbutton3Out(e) {
 
-    const button1Text = new PIXI.Text("Rotate", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 24 }));
-    button1Text.x = 110;
-    button1Text.y = 35;
-    button1.addChild(button1Text);
-
-    function onbutton1Down(e) {
-        console.log("Button 1 says: MEOW");
-        playableBlocks[0].rotate();
-        playableBlocks[1].rotate();
-        playableBlocks[2].rotate();
-    };
-    function onbutton1Up(e) {
-
-    };
-    function onbutton1Over(e) {
-
-    };
-    function onbutton1Out(e) {
-
-    };
-
-    const button2 = new PIXI.Graphics();
-    button2.beginFill('#EF3E36');
-    button2.drawRect(250, 25, 100, 45);
-    button2.eventMode = 'static';
-    button2.cursor = 'pointer';
-    button2.on('pointerdown', onbutton2Down)
-        .on('pointerup', onbutton2Up)
-        .on('pointerupoutside', onbutton2Up)
-        .on('pointerover', onbutton2Over)
-        .on('pointerout', onbutton2Out);
-    app.stage.addChild(button2);
-
-    const button2Text = new PIXI.Text("BUTTOM", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 20 }));
-    button2Text.x = 260;
-    button2Text.y = 35;
-    button2.addChild(button2Text);
-
-    function onbutton2Down(e) {
-        console.log("Button 2 says: uwu");
-    };
-    function onbutton2Up(e) {
-
-    };
-    function onbutton2Over(e) {
-
-    };
-    function onbutton2Out(e) {
-
-    };
-
-    const button3 = new PIXI.Graphics();
-    button3.beginFill('#EF3E36');
-    button3.drawRect(400, 25, 100, 45);
-    button3.eventMode = 'static';
-    button3.cursor = 'pointer';
-    button3.on('pointerdown', onbutton3Down)
-        .on('pointerup', onbutton3Up)
-        .on('pointerupoutside', onbutton3Up)
-        .on('pointerover', onbutton3Over)
-        .on('pointerout', onbutton3Out);
-    app.stage.addChild(button3);
-
-    const button3Text = new PIXI.Text("New Blocks", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 16 }));
-    button3Text.x = 410;
-    button3Text.y = 35;
-    button3.addChild(button3Text);
-
-    function onbutton3Down(e) {
-        console.log("Button 3 says: Hewwo");
-
-        for (let i = 0; i < 3; i++) {
-            let removed = playableBlocks.pop();
-            removed.release();
-        }
-
-        for (let i = 0; i < 3; i++) {
-            let randomNum = getRandomInt(0, SHAPEKEYS.length);
-            let positionKey = Object.keys(playableBlockPositions)[i];
-            let newBlock = new BlockSprite(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[SHAPEKEYS[randomNum]].shape, textures[SHAPEKEYS[randomNum]], onDragStart)
-            playableBlocks.push(newBlock);
-        }
-    };
-    function onbutton3Up(e) {
-
-    };
-    function onbutton3Over(e) {
-
-    };
-    function onbutton3Out(e) {
-
-    };
-    //#endregion
-
-    //#region TESTING
-    //console.log(gameGrid);
-    //console.log(playableBlocks[0]);
-
-
-
-    // let testSprite1 = new BlockSprite(playableBlockPositions.x1, playableBlockPositions.y, BLOCKSHAPES.block7.shape, textures.block7, onDragStart);
-    // let testSprite2 = new BlockSprite(playableBlockPositions.x2, playableBlockPositions.y, BLOCKSHAPES.block16.shape, textures.block16, onDragStart);
-    // let testSprite3 = new BlockSprite(playableBlockPositions.x3, playableBlockPositions.y, BLOCKSHAPES.block2.shape, textures.block2, onDragStart);
-    //#endregion
-});
-
+};
+//#endregion
