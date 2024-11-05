@@ -1,423 +1,147 @@
 "use strict";
-const app = new PIXI.Application({ 'width': 600, 'height': 900, 'backgroundColor': '#FCFCF4' });
-document.body.querySelector("#pixicanvas").appendChild(app.view);
+const APP = new PIXI.Application({ 'width': 350, 'height': 350, 'backgroundColor': '#FCFCF4' });
+document.body.querySelector("#pixicanvas").appendChild(APP.view);
+APP.label = 'APP';
 
-window.__PIXI_DEVTOOLS__ = { app: app };
+window.__PIXI_DEVTOOLS__ = { app: APP };
 
-const WIDTH = app.view.width;
-const HEIGHT = app.view.height;
-const CELLSIZE = 50; //px
+let dragTarget = null;
+APP.stage.eventMode = 'static';
+APP.stage.hitArea = APP.screen;
+APP.stage.on('pointerup', onDragEnd);
+APP.stage.on('pointerupoutside', onDragEnd);
 
-const BLOCKSHAPES = {
-    'CELL': {
-        shape: [
-            [1]
-        ], numForms: 1
-    },
-    'block1': {
-        shape: [
-            [1],
-            [1]
-        ], numForms: 2
-    },
-    'block2': {
-        shape: [
-            [1],
-            [1],
-            [1]
-        ],
-        numForms: 2
-    },
-    'block3': {
-        shape: [
-            [1],
-            [1],
-            [1],
-            [1]
-        ], numForms: 2
-    },
-    'block4': {
-        shape: [
-            [1],
-            [1],
-            [1],
-            [1],
-            [1]
-        ], numForms: 2
-    },
-    'block5': {
-        shape: [
-            [0, 1],
-            [1, 0]
-        ], numForms: 2
-    },
-    'block6': {
-        shape: [
-            [0, 0, 1],
-            [0, 1, 0],
-            [1, 0, 0]
-        ], numForms: 2
-    },
-    'block7': {
-        shape: [
-            [1, 0],
-            [1, 1]
-        ], numForms: 4
-    },
-    'block8': {
-        shape: [
-            [1, 1, 1],
-            [1, 0, 0],
-            [1, 0, 0]
-        ], numForms: 4
-    },
-    'block9': {
-        shape: [
-            [1, 1, 1],
-            [0, 1, 0],
-            [0, 1, 0]
-        ], numForms: 4
-    },
-    'block10': {
-        shape: [
-            [0, 1, 0],
-            [1, 1, 1]
-        ], numForms: 4
-    },
-    'block11': {
-        shape: [
-            [1, 1],
-            [1, 0],
-            [1, 1]
-        ], numForms: 4
-    },
-    'block12': {
-        shape: [
-            [1, 0],
-            [1, 0],
-            [1, 1]
-        ], numForms: 4
-    },
-    'block13': {
-        shape: [
-            [0, 1],
-            [0, 1],
-            [1, 1]
-        ], numForms: 4
-    },
-    'block14': {
-        shape: [
-            [1, 1, 0],
-            [0, 1, 1]
-        ], numForms: 4
-    },
-    'block15': {
-        shape: [
-            [0, 1, 1],
-            [1, 1, 0]
-        ], numForms: 4
-    },
-    'block16': {
-        shape: [
-            [0, 1, 0],
-            [1, 1, 1],
-            [0, 1, 0]
-        ], numForms: 1
-    },
-    'block17': {
-        shape: [
-            [1, 1],
-            [1, 1]
-        ], numForms: 1
-    },
-};
-const SHAPEKEYS = Object.keys(BLOCKSHAPES);
-
-for (let i = 0; i < SHAPEKEYS.length; i++) {
-    //console.log(SHAPEKEYS[i]);
-    PIXI.Assets.add({
-        alias: SHAPEKEYS[i],
-        src: './assets/' + SHAPEKEYS[i] + '.png'
-    });
+function onDragStart() {
+    dragTarget = this;
+    dragTarget.alpha = 0.6;
+    APP.stage.on('pointermove', onDragMove);
 }
 
-let score = 0;
-// let startScene, gameScene, gameOverScene;
-// let startGameButton, startOverButton;
-// let gameOverText;
-let blocksOnGrid = [];
-let playableBlocks = [];
+function onDragMove(e) {
+    if (dragTarget)
+        dragTarget.parent.toLocal(e.global, null, dragTarget.position);
+}
 
-//app.ticker.add((delta) => {});
-
-let texturesPromise = PIXI.Assets.load(SHAPEKEYS);
-texturesPromise.then((textures) => {
-    //#region game grid
-    let gameGrid = {
-        size: CELLSIZE * 9,
-        gridContainer: new PIXI.Container(),
-        gridGraphic: new PIXI.Graphics,
-        gridArray: Array(9).fill().map(() => Array(9).fill(0)),
-        cellArray: [[], [], [], [], [], [], [], [], []],
-        topLeftCorner: { x: 75, y: 100 },
-    };
-    app.stage.addChild(gameGrid.gridContainer);
-
-    // drawcells
-    for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 9; j++) {
-            let currentColor = Math.floor(i / 3) % 2 === Math.floor(j / 3) % 2 ? '#D0EFB1' : '#B3D89C';
-
-            let cell = new PIXI.Graphics();
-            cell.beginFill(currentColor);
-            cell.drawRect(gameGrid.topLeftCorner.x + (CELLSIZE * i), gameGrid.topLeftCorner.y + (CELLSIZE * j), CELLSIZE, CELLSIZE);
-            cell.endFill();
-            cell.pivot =
-
-                gameGrid.cellArray[i][j] = cell;
-            gameGrid.gridContainer.addChild(cell);
-        }
+function onDragEnd() {
+    if (dragTarget) {
+        APP.stage.off('pointermove', onDragMove);
+        dragTarget.alpha = 1;
+        dragTarget = null;
     }
-    gameGrid.gridContainer.addChild(gameGrid.gridGraphic);
-
-    //draw lines
-    let lines = new PIXI.Graphics();
-    lines.lineStyle(10, '#000000', 1);
-    lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y - 5);
-    lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y - 5);
-    lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + gameGrid.size + 5);
-    lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + gameGrid.size + 5);
-    lines.moveTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y - 10);
-    lines.lineTo(gameGrid.topLeftCorner.x - 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
-    lines.moveTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y - 10);
-    lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size + 5, gameGrid.topLeftCorner.y + gameGrid.size + 10);
-    lines.lineStyle(1, '#000000', 1);
-    for (let i = 1; i < 9; i++) {
-        lines.moveTo(gameGrid.topLeftCorner.x, gameGrid.topLeftCorner.y + CELLSIZE * i);
-        lines.lineTo(gameGrid.topLeftCorner.x + gameGrid.size, gameGrid.topLeftCorner.y + CELLSIZE * i);
-        for (let j = 1; j < 9; j++) {
-            lines.moveTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y);
-            lines.lineTo(gameGrid.topLeftCorner.x + CELLSIZE * j, gameGrid.topLeftCorner.y + gameGrid.size);
-        }
-    }
-    app.stage.addChild(lines);
-
-    gameGrid.gridContainer.eventMode = 'static';
-    //#endregion
-
-    //#region playable blocks
-    const playableBlockPositions = {
-        x1: gameGrid.topLeftCorner.x + CELLSIZE - 10,
-        x2: gameGrid.topLeftCorner.x + CELLSIZE * 4.5,
-        x3: gameGrid.topLeftCorner.x + CELLSIZE * 8 + 10,
-        y: gameGrid.topLeftCorner.y + gameGrid.size + CELLSIZE * 2
-    }
-
-    for (let i = 0; i < 3; i++) {
-        let randomNum = getRandomInt(0, SHAPEKEYS.length);
-        let positionKey = Object.keys(playableBlockPositions)[i];
-        let newBlock = new BlockSprite(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[SHAPEKEYS[randomNum]].shape, textures[SHAPEKEYS[randomNum]], onDragStart)
-
-        newBlock.sprite.scale = new PIXI.Point(0.35, 0.35);
-        playableBlocks.push(newBlock);
-    }
-    //#endregion
-
-    //#region block movement
-    let dragTarget = null;
-    app.stage.eventMode = 'static';
-    app.stage.hitArea = app.screen;
-    app.stage.on('pointerup', onDragEnd);
-    app.stage.on('pointerupoutside', onDragEnd);
-
-    function onDragStart() {
-        dragTarget = this;
-        dragTarget.sprite.alpha = 0.8;
-        dragTarget.sprite.scale = new PIXI.Point(0.49, 0.49);
-        app.stage.on('pointermove', onDragMove);
-    }
-
-    function onDragMove(e) {
-        if (dragTarget) {
-            dragTarget.sprite.parent.toLocal(e.global, null, dragTarget.sprite.position);
-
-            if (rectsIntersect(dragTarget.sprite, gameGrid.gridContainer)) {
-                //dragTarget.sprite.tint = '#ff2d00';
-                getNearestSpot(dragTarget);
-            }
-            else {
-                dragTarget.sprite.tint = 0xFFFFFF;
-            }
-        }
-    }
-
-    function onDragEnd() {
-        if (dragTarget) {
-            app.stage.off('pointermove', onDragMove);
-            dragTarget.sprite.alpha = 1;
-
-            dragTarget.sprite.scale = new PIXI.Point(0.35, 0.35);
-            dragTarget.sprite.alpha = 1;
-            dragTarget.sprite.tint = 0xFFFFFF;
-
-            dragTarget = null;
-        }
-    }
-
-    function getNearestSpot(block) {
-        // Get the top-left corner of the block
-        let topCorner = { x: 0, y: 0 };
-        // top corner of sprite
-        topCorner.x = Math.floor(block.sprite.x - block.width / 2);
-        topCorner.y = Math.floor(block.sprite.y - block.height / 2);
-
-        // console.log(topCorner);
-
-        // Calculate the nearest grid cell coordinates
-        let nearestGridCell = { x: 0, y: 0 };
-        nearestGridCell.x = Math.floor(topCorner.x / CELLSIZE);
-        nearestGridCell.y = Math.floor(topCorner.y / CELLSIZE);
-
-        // console.log(nearestGridCell);
+}
 
 
-        console.log();
-        if (isPlaceable(block)) {
+let testContainer1 = new PIXI.Container();
+testContainer1.label = 'test container 1';
+testContainer1.eventMode = 'static';
+testContainer1.on('pointerdown', onDragStart, testContainer1);
+testContainer1.position = new PIXI.Point(125, 125);
 
-        }
-    }
+let testGraphic1 = new PIXI.Graphics();
+testGraphic1.label = 'test graphic 1';
+testGraphic1.beginFill('#EE964B');//orange
+testGraphic1.drawRect(0, 0, CELLSIZE, CELLSIZE);
+testGraphic1.endFill();
+testContainer1.addChild(testGraphic1);
 
-    function snapBlockToGrid(block) {
-        // Calculate the nearest grid cell based on the block’s current position.
-        // Check if the target position on the board is unoccupied and within bounds.
+let testGraphic2 = new PIXI.Graphics();
+testGraphic2.label = 'test graphic 2';
+testGraphic2.beginFill('#599A39');//green
+testGraphic2.x = CELLSIZE;
+testGraphic2.y = 0;
+testGraphic2.drawRect(0, 0, CELLSIZE, CELLSIZE);
+testGraphic2.endFill();
+testContainer1.addChild(testGraphic2);
 
-        dragTarget.sprite.scale = new PIXI.Point(0.5, 0.5);
-        dragTarget.sprite.alpha = 1;
-        dragTarget.sprite.tint = 0xFFFFFF;
-        this.blockSprite.disableInteractivity();
-    }
+testContainer1.pivot.x =testContainer1.width/2;
+testContainer1.pivot.y = testContainer1.height/2;
 
-    function isPlaceable(block) {
-        return false;
-    }
-    //#endregion
+APP.stage.addChild(testContainer1);
+// APP.stage.addChild(testGraphic1);
 
-    //#region Test Buttons
-    const button1 = new PIXI.Graphics();
-    button1.beginFill('#EF3E36');
-    button1.drawRect(100, 25, 100, 45);
-    button1.eventMode = 'static';
-    button1.cursor = 'pointer';
-    button1.on('pointerdown', onbutton1Down)
-        .on('pointerup', onbutton1Up)
-        .on('pointerupoutside', onbutton1Up)
-        .on('pointerover', onbutton1Over)
-        .on('pointerout', onbutton1Out);
-    app.stage.addChild(button1);
+function changeForm(){
 
-    const button1Text = new PIXI.Text("Rotate", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 24 }));
-    button1Text.x = 110;
-    button1Text.y = 35;
-    button1.addChild(button1Text);
+}
 
-    function onbutton1Down(e) {
-        console.log("Button 1 says: MEOW");
-        playableBlocks[0].rotate();
-        playableBlocks[1].rotate();
-        playableBlocks[2].rotate();
-    };
-    function onbutton1Up(e) {
-
-    };
-    function onbutton1Over(e) {
-
-    };
-    function onbutton1Out(e) {
-
-    };
-
-    const button2 = new PIXI.Graphics();
-    button2.beginFill('#EF3E36');
-    button2.drawRect(250, 25, 100, 45);
-    button2.eventMode = 'static';
-    button2.cursor = 'pointer';
-    button2.on('pointerdown', onbutton2Down)
-        .on('pointerup', onbutton2Up)
-        .on('pointerupoutside', onbutton2Up)
-        .on('pointerover', onbutton2Over)
-        .on('pointerout', onbutton2Out);
-    app.stage.addChild(button2);
-
-    const button2Text = new PIXI.Text("BUTTOM", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 20 }));
-    button2Text.x = 260;
-    button2Text.y = 35;
-    button2.addChild(button2Text);
-
-    function onbutton2Down(e) {
-        console.log("Button 2 says: uwu");
-    };
-    function onbutton2Up(e) {
-
-    };
-    function onbutton2Over(e) {
-
-    };
-    function onbutton2Out(e) {
-
-    };
-
-    const button3 = new PIXI.Graphics();
-    button3.beginFill('#EF3E36');
-    button3.drawRect(400, 25, 100, 45);
-    button3.eventMode = 'static';
-    button3.cursor = 'pointer';
-    button3.on('pointerdown', onbutton3Down)
-        .on('pointerup', onbutton3Up)
-        .on('pointerupoutside', onbutton3Up)
-        .on('pointerover', onbutton3Over)
-        .on('pointerout', onbutton3Out);
-    app.stage.addChild(button3);
-
-    const button3Text = new PIXI.Text("New Blocks", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 16 }));
-    button3Text.x = 410;
-    button3Text.y = 35;
-    button3.addChild(button3Text);
-
-    function onbutton3Down(e) {
-        console.log("Button 3 says: Hewwo");
-
-        for (let i = 0; i < 3; i++) {
-            let removed = playableBlocks.pop();
-            removed.release();
-        }
-
-        for (let i = 0; i < 3; i++) {
-            let randomNum = getRandomInt(0, SHAPEKEYS.length);
-            let positionKey = Object.keys(playableBlockPositions)[i];
-            let newBlock = new BlockSprite(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[SHAPEKEYS[randomNum]].shape, textures[SHAPEKEYS[randomNum]], onDragStart)
-            playableBlocks.push(newBlock);
-        }
-    };
-    function onbutton3Up(e) {
-
-    };
-    function onbutton3Over(e) {
-
-    };
-    function onbutton3Out(e) {
-
-    };
-    //#endregion
-
-    //#region TESTING
-    //console.log(gameGrid);
-    //console.log(playableBlocks[0]);
-
-
-
-    // let testSprite1 = new BlockSprite(playableBlockPositions.x1, playableBlockPositions.y, BLOCKSHAPES.block7.shape, textures.block7, onDragStart);
-    // let testSprite2 = new BlockSprite(playableBlockPositions.x2, playableBlockPositions.y, BLOCKSHAPES.block16.shape, textures.block16, onDragStart);
-    // let testSprite3 = new BlockSprite(playableBlockPositions.x3, playableBlockPositions.y, BLOCKSHAPES.block2.shape, textures.block2, onDragStart);
-    //#endregion
+//////////////////////////////////
+const button1 = new PIXI.Graphics();
+button1.label = 'Button 1';
+button1.beginFill('#EF3E36');
+button1.drawRect(5, 5, 45, 45);
+button1.eventMode = 'static';
+button1.cursor = 'pointer';
+button1.on('pointerdown', (e) => {
+    console.log("Button 1 says: MEOW");
+    testContainer1.rotation += Math.PI / 2;
 });
+APP.stage.addChild(button1);
 
+const button2 = new PIXI.Graphics();
+button2.label = 'Button 2';
+button2.beginFill('#EF3E36');
+button2.drawRect(60, 5, 45, 45);
+button2.eventMode = 'static';
+button2.cursor = 'pointer';
+button2.on('pointerdown', (e) => {
+    console.log("Button 2 says: MEOW");
+
+    testContainer1.scale = new PIXI.Point(0.7, 0.7);
+});
+APP.stage.addChild(button2);
+
+const button3 = new PIXI.Graphics();
+button3.label = 'Button 3';
+button3.beginFill('#EF3E36');
+button3.drawRect(115, 5, 45, 45);
+button3.eventMode = 'static';
+button3.cursor = 'pointer';
+button3.on('pointerdown', (e) => {
+    console.log("Button 3 says: MEOW");
+    testContainer1.scale = new PIXI.Point(1,1);
+});
+APP.stage.addChild(button3);
+
+const button4 = new PIXI.Graphics();
+button4.label = 'Button 4';
+button4.beginFill('#EF3E36');
+button4.drawRect(170, 5, 45, 45);
+button4.eventMode = 'static';
+button4.cursor = 'pointer';
+button4.on('pointerdown', (e) => {
+    console.log("Button 4 says: MEOW");
+
+    changeForm();
+});
+APP.stage.addChild(button4);
+
+const button5 = new PIXI.Graphics();
+button5.label = 'Button 5';
+button5.beginFill('#EF3E36');
+button5.drawRect(225, 5, 45, 45);
+button5.eventMode = 'static';
+button5.cursor = 'pointer';
+button5.on('pointerdown', (e) => {
+    console.log("Button 5 says: MEOW");
+
+});
+APP.stage.addChild(button5);
+
+const button6 = new PIXI.Graphics();
+button6.label = 'Button 6';
+button6.beginFill('#EF3E36');
+button6.drawRect(280, 5, 45, 45);
+button6.eventMode = 'static';
+button6.cursor = 'pointer';
+button6.on('pointerdown', (e) => {
+    console.log("Button 6 says: MEOW");
+    showData();
+});
+APP.stage.addChild(button6);
+
+function showData() {
+    document.body.querySelector("#output").innerHTML = '';
+    displayData(testContainer1, testContainer1.label);
+    displayData(testGraphic1, testGraphic1.label);
+    displayData(testGraphic2, testGraphic2.label);
+};
+showData();

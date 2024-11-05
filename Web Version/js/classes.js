@@ -9,17 +9,19 @@ class Block extends PIXI.Container {
         this.numPossRots = shapeObj.numForms; // # of possible forms through 90deg rotations
 
         this.normalForm = new PIXI.Container();
+        this.normalForm.label = 'normalForm container';
         this.draggingForm = new PIXI.Container();
+        this.draggingForm.label = 'draggingForm container';
         this.currentForm = 'normal';
-        
+
         this.dragFunc = dragFunc;
         this.enableInteractivity();
-        
+
         this.value = 0;
         for (let i = 0; i < this.shape.length; i++)
             for (let j = 0; j < this.shape[0].length; j++)
-        if (this.shape[i][j] == 1) this.value++;
-        
+                if (this.shape[i][j] == 1) this.value++;
+
         this.makeBlock();
         this.randomizeRotation();
 
@@ -32,8 +34,11 @@ class Block extends PIXI.Container {
                     let cell = new PIXI.Graphics();
                     cell.beginFill('#64B6AC');
                     cell.lineStyle(4, '#5D737E', 1);
-                    cell.drawRect(i * CELLSIZE, j * CELLSIZE, CELLSIZE, CELLSIZE);
+                    // cell.drawRect(i * CELLSIZE, j * CELLSIZE, CELLSIZE, CELLSIZE);
+                    cell.drawRect(0, 0, CELLSIZE, CELLSIZE);
                     cell.endFill();
+                    cell.position=new PIXI.Point(CELLSIZE*i, CELLSIZE*j);
+                    cell.label = 'normalForm block cell';
 
                     this.normalForm.scale = new PIXI.Point(0.65, 0.65);
                     this.normalForm.addChild(cell);
@@ -54,6 +59,7 @@ class Block extends PIXI.Container {
                     cell.lineStyle(4, '#5D737E', 1);
                     cell.drawRect(i * CELLSIZE, j * CELLSIZE, CELLSIZE * 0.8, CELLSIZE * 0.8);
                     cell.endFill();
+                    cell.label = 'draggingForm block cell';
 
                     this.draggingForm.addChild(cell);
                 }
@@ -62,7 +68,7 @@ class Block extends PIXI.Container {
         this.addChild(this.draggingForm);
         this.draggingForm.visible = false;
 
-        this.boundsArea=new PIXI.Rectangle(0,0,CELLSIZE * 0.8,CELLSIZE * 0.8);
+        this.boundsArea = new PIXI.Rectangle(0, 0, CELLSIZE * 0.8, CELLSIZE * 0.8);
     }
 
     changeForms(toNormal = true) {

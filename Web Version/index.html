@@ -5,20 +5,34 @@
     <meta charset="utf-8">
     <title>Blockudoku</title>
     <link rel="stylesheet" type="text/css" href="styles/normalize.css">
-    <!-- <link rel="stylesheet" type="text/css" href="styles/other.css"> -->
+    <link rel="stylesheet" type="text/css" href="styles/other.css">
     <link rel="stylesheet" type="text/css" href="styles/main.css">
     <link rel="icon" type="image/png" href="assets/favicon-32x32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="assets/favicon-16x16.png" sizes="16x16" />
 
+    <style>
+        /* DELETE this later, for testing porpoises */
+        body {
+            background-color: rgb(205, 230, 233);
+        }
+
+        main {
+            display: flex;
+        }
+    </style>
 </head>
 
 <body>
     <main>
         <div id="pixicanvas"></div>
+
+        <div id="output"></div>
     </main>
 
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/8.5.2/pixi.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js"></script>
+    <script src="js/dataPrinting.js"></script>
+
     <script src="js/globalConstants.js"></script>
     <script src="js/helper.js"></script>
     <script src="js/classes.js"></script>
