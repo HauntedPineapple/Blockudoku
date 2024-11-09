@@ -81,6 +81,38 @@ for (let i = 1; i < 9; i++) {
 APP.stage.addChild(lines);
 //#endregion game grid
 
+//#region playable blocks
+const playableBlockPositions = {
+    x1: gameGrid.topLeftCorner.x + CELLSIZE - 10,
+    x2: gameGrid.topLeftCorner.x + CELLSIZE * 4.5,
+    x3: gameGrid.topLeftCorner.x + CELLSIZE * 8 + 10,
+    y: gameGrid.topLeftCorner.y + gameGrid.size + CELLSIZE * 2
+}
+
+let playableBlocks = [];
+
+function generatePlayableBlocks() {
+    for (let i = 0; i < 3; i++) {
+        let removed = playableBlocks.pop();
+        if (removed)
+            removed.destroy();
+    }
+
+    for (let i = 0; i < 3; i++) {
+        let randomNum = getRandomInt(0, Object.keys(BLOCKSHAPES).length);
+        let randomBlockKey = Object.keys(BLOCKSHAPES)[randomNum];
+        let positionKey = Object.keys(playableBlockPositions)[i];
+
+        let newBlock = new Block(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[randomBlockKey], onDragStart);
+        newBlock.label = `Playable Block ${i + 1}`;
+        APP.stage.addChild(newBlock);
+        playableBlocks.push(newBlock);
+    }
+}
+
+generatePlayableBlocks();
+//#endregion playable blocks
+
 //#region movement
 let dragTarget = null;
 let hoveredGridCells = null;
@@ -91,7 +123,6 @@ APP.stage.on('pointerupoutside', onDragEnd);
 
 function onDragStart() {
     dragTarget = this;
-
     dragTarget.alpha = 0.6;
     dragTarget.changeForms(false);
     APP.stage.on('pointermove', onDragMove);
@@ -101,34 +132,39 @@ function onDragMove(e) {
     if (dragTarget) {
         dragTarget.parent.toLocal(e.global, null, dragTarget.position);
 
-        // showBlockData();
         if (isInGrid(dragTarget)) {
             getNearestSpot(dragTarget);
-
-
         }
-        else if (hoveredGridCells && hoveredGridCells.length > 0) {
-            hoveredGridCells.forEach(row => {
-                row.forEach(cell => {
-                    if (cell)
-                        cell.tint = 0xFFFFFF;
-                });
-            });
+        else {
+            clearHoveredCells();
         }
-
     }
 }
 
 function onDragEnd() {
     if (dragTarget) {
         APP.stage.off('pointermove', onDragMove);
-        if (hoveredGridCells && hoveredGridCells.length > 0) {
-            hoveredGridCells.forEach(row => {
-                row.forEach(cell => {
-                    if (cell)
-                        cell.tint = 0xFFFFFF;
-                });
-            });
+
+        clearHoveredCells();
+
+        if (isInGrid(dragTarget)) {
+            console.log("In Grid");
+        }
+        else { // find the block's original spotand put it back
+            let originalPosX;
+            switch (Number(dragTarget.label.split("Playable Block ")[1])) {
+                case 1:
+                    originalPosX = playableBlockPositions.x1;
+                    break;
+                case 2:
+                    originalPosX = playableBlockPositions.x2;
+                    break;
+                case 3:
+                    originalPosX = playableBlockPositions.x3;
+                    break;
+            }
+            dragTarget.position.x = originalPosX;
+            dragTarget.position.y = playableBlockPositions.y;
         }
 
         dragTarget.alpha = 1;
@@ -172,14 +208,7 @@ function getNearestSpot(block) {
 }
 
 function isPlaceable(block, gridRow, gridCol) {
-    if (hoveredGridCells && hoveredGridCells.length > 0) {
-        hoveredGridCells.forEach(row => {
-            row.forEach(cell => {
-                if (cell)
-                    cell.tint = 0xFFFFFF;
-            });
-        });
-    }
+    clearHoveredCells();
 
     hoveredGridCells = Array(block.shape.length).fill().map(() => Array(block.shape[0].length).fill());
 
@@ -206,43 +235,23 @@ function isPlaceable(block, gridRow, gridCol) {
     return true;
 }
 
+function clearHoveredCells() {
+    if (hoveredGridCells && hoveredGridCells.length > 0) {
+        hoveredGridCells.forEach(row => {
+            row.forEach(cell => {
+                if (cell)
+                    cell.tint = 0xFFFFFF;
+            });
+        });
+    }
+}
+
 function snapBlockToGrid(block) {
+    // TODO
     this.block.alpha = 1;
     this.block.disableInteractivity();
 }
 //#endregion movement
-
-//#region playable blocks
-const playableBlockPositions = {
-    x1: gameGrid.topLeftCorner.x + CELLSIZE - 10,
-    x2: gameGrid.topLeftCorner.x + CELLSIZE * 4.5,
-    x3: gameGrid.topLeftCorner.x + CELLSIZE * 8 + 10,
-    y: gameGrid.topLeftCorner.y + gameGrid.size + CELLSIZE * 2
-}
-
-let playableBlocks = [];
-
-function generatePlayableBlocks() {
-    for (let i = 0; i < 3; i++) {
-        let removed = playableBlocks.pop();
-        if (removed)
-            removed.destroy();
-    }
-
-    for (let i = 0; i < 3; i++) {
-        let randomNum = getRandomInt(0, Object.keys(BLOCKSHAPES).length);
-        let randomBlockKey = Object.keys(BLOCKSHAPES)[randomNum];
-        let positionKey = Object.keys(playableBlockPositions)[i];
-
-        let newBlock = new Block(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES[randomBlockKey], onDragStart);
-        newBlock.label = `Playable Block ${i + 1}`;
-        APP.stage.addChild(newBlock);
-        playableBlocks.push(newBlock);
-    }
-}
-
-generatePlayableBlocks();
-//#endregion playable blocks
 
 //#region Testing and Debugging
 function showBlockData() {
