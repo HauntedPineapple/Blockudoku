@@ -8,7 +8,7 @@ const WIDTH = APP.view.width;
 const HEIGHT = APP.view.height;
 
 //#region
-let score = 0;
+// let score = 0;
 // let startScene, gameScene, gameOverScene;
 // let startGameButton, startOverButton;
 // let gameOverText;
@@ -79,7 +79,7 @@ for (let i = 1; i < 9; i++) {
     }
 }
 APP.stage.addChild(lines);
-//#endregion
+//#endregion game grid
 
 //#region movement
 let dragTarget = null;
@@ -105,9 +105,15 @@ function onDragMove(e) {
         if (isInGrid(dragTarget)) {
             getNearestSpot(dragTarget);
 
-            
+
         }
-        else {
+        else if (hoveredGridCells && hoveredGridCells.length > 0) {
+            hoveredGridCells.forEach(row => {
+                row.forEach(cell => {
+                    if (cell)
+                        cell.tint = 0xFFFFFF;
+                });
+            });
         }
 
     }
@@ -119,12 +125,12 @@ function onDragEnd() {
         if (hoveredGridCells && hoveredGridCells.length > 0) {
             hoveredGridCells.forEach(row => {
                 row.forEach(cell => {
-                    if(cell)
+                    if (cell)
                         cell.tint = 0xFFFFFF;
                 });
             });
         }
-        
+
         dragTarget.alpha = 1;
         dragTarget.changeForms();
 
@@ -135,7 +141,22 @@ function onDragEnd() {
 function isInGrid(block) {
     let ab = block.getBounds();
     let bb = gameGrid.gridContainer.getBounds();
-    return ab.x + ab.width > bb.x && ab.x < bb.x + bb.width && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
+
+    let topLeftCorner = { x: ab.x, y: ab.y };
+    let bottomRightCorner = { x: ab.x + ab.width, y: ab.y + ab.height };
+
+    if (topLeftCorner.x >= bb.x &&
+        topLeftCorner.x <= bb.x + bb.width &&
+        topLeftCorner.y >= bb.y &&
+        topLeftCorner.y <= bb.y + bb.height &&
+        bottomRightCorner.x >= bb.x &&
+        bottomRightCorner.x <= bb.x + bb.width &&
+        bottomRightCorner.y >= bb.y &&
+        bottomRightCorner.y <= bb.y + bb.height) {
+        return true;
+    }
+
+    return false;
 }
 
 function getNearestSpot(block) {
@@ -154,7 +175,7 @@ function isPlaceable(block, gridRow, gridCol) {
     if (hoveredGridCells && hoveredGridCells.length > 0) {
         hoveredGridCells.forEach(row => {
             row.forEach(cell => {
-                if(cell)
+                if (cell)
                     cell.tint = 0xFFFFFF;
             });
         });
@@ -169,7 +190,7 @@ function isPlaceable(block, gridRow, gridCol) {
                     row: gridRow + i - 1,
                     col: gridCol + j - 1
                 };
-                
+
                 // get the index of the corresponding cell
                 let index = (9 * boardIndices.col) + boardIndices.row;
 
@@ -182,19 +203,14 @@ function isPlaceable(block, gridRow, gridCol) {
             }
         }
     }
-
-    console.log(hoveredGridCells);
     return true;
 }
 
 function snapBlockToGrid(block) {
-
-
-    this.block.changeForms();
     this.block.alpha = 1;
     this.block.disableInteractivity();
 }
-//#endregion
+//#endregion movement
 
 //#region playable blocks
 const playableBlockPositions = {
@@ -226,62 +242,9 @@ function generatePlayableBlocks() {
 }
 
 generatePlayableBlocks();
-//#endregion
+//#endregion playable blocks
 
-//#region Test Buttons
-const button1 = new PIXI.Graphics();
-button1.label = 'Button 1';
-button1.beginFill('#EF3E36');
-button1.drawRect(100, 25, 100, 45);
-button1.eventMode = 'static';
-button1.cursor = 'pointer';
-button1.on('pointerdown', onbutton1Down)
-    .on('pointerup', onbutton1Up)
-    .on('pointerupoutside', onbutton1Up)
-    .on('pointerover', onbutton1Over)
-    .on('pointerout', onbutton1Out);
-APP.stage.addChild(button1);
-
-const button1Text = new PIXI.Text("Rotate", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 24 }));
-button1Text.x = 110;
-button1Text.y = 35;
-button1.addChild(button1Text);
-
-function onbutton1Down(e) {
-    console.log("Button 1 says: MEOW");
-    playableBlocks.forEach(block => {
-        block.rotateBlock();
-        console.log(block.shape);
-    });
-};
-function onbutton1Up(e) {
-
-};
-function onbutton1Over(e) {
-
-};
-function onbutton1Out(e) {
-
-};
-///////////////////
-const button2 = new PIXI.Graphics();
-button2.label = 'Button 2';
-button2.beginFill('#EF3E36');
-button2.drawRect(250, 25, 100, 45);
-button2.eventMode = 'static';
-button2.cursor = 'pointer';
-button2.on('pointerdown', onbutton2Down)
-    .on('pointerup', onbutton2Up)
-    .on('pointerupoutside', onbutton2Up)
-    .on('pointerover', onbutton2Over)
-    .on('pointerout', onbutton2Out);
-APP.stage.addChild(button2);
-
-const button2Text = new PIXI.Text("Refresh Data", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 20 }));
-button2Text.x = 260;
-button2Text.y = 35;
-button2.addChild(button2Text);
-
+//#region Testing and Debugging
 function showBlockData() {
     document.body.querySelector("#output").innerHTML = '';
     //displayData(gameGrid.gridContainer, gameGrid.gridContainer.label);
@@ -292,51 +255,59 @@ function showBlockData() {
     });
 }
 showBlockData();
-function onbutton2Down(e) {
-    console.log("Button 2 says: uwu");
 
+//#region HTML Buttons
+const ButtonA = document.body.querySelector("#aButton");
+const ButtonB = document.body.querySelector("#bButton");
+const ButtonC = document.body.querySelector("#cButton");
+const ButtonX = document.body.querySelector("#xButton");
+const ButtonY = document.body.querySelector("#yButton");
+const ButtonZ = document.body.querySelector("#zButton");
+
+ButtonA.innerHTML = "Show Block Data";
+ButtonA.addEventListener('click', (e) => {
+    // console.log('Button A says: owo');
     showBlockData();
-};
-function onbutton2Up(e) {
+});
 
-};
-function onbutton2Over(e) {
-
-};
-function onbutton2Out(e) {
-
-};
-///////////////////
-const button3 = new PIXI.Graphics();
-button3.label = 'Button 3';
-button3.beginFill('#EF3E36');
-button3.drawRect(400, 25, 100, 45);
-button3.eventMode = 'static';
-button3.cursor = 'pointer';
-button3.on('pointerdown', onbutton3Down)
-    .on('pointerup', onbutton3Up)
-    .on('pointerupoutside', onbutton3Up)
-    .on('pointerover', onbutton3Over)
-    .on('pointerout', onbutton3Out);
-APP.stage.addChild(button3);
-
-const button3Text = new PIXI.Text("New Blocks", new PIXI.TextStyle({ fontFamily: 'Arial', fontSize: 16 }));
-button3Text.x = 410;
-button3Text.y = 35;
-button3.addChild(button3Text);
-
-function onbutton3Down(e) {
-    console.log("Button 3 says: Hewwo");
+ButtonB.innerHTML = "Generate New Blocks";
+ButtonB.addEventListener('click', (e) => {
+    // console.log('Button B says: XD');
     generatePlayableBlocks();
-    showBlockData();
-};
-function onbutton3Up(e) {
+});
 
-};
-function onbutton3Over(e) {
+ButtonC.innerHTML = "Clear Output Data";
+ButtonC.addEventListener('click', (e) => {
+    // console.log('Button C says: rawr');
+    document.body.querySelector("#output").innerHTML = '';
+});
 
-};
-function onbutton3Out(e) {
+ButtonX.innerHTML = "ButtonX";
+ButtonX.addEventListener('click', (e) => {
+    console.log('Button X says: UWU');
 
-};
-//#endregion
+});
+
+ButtonY.innerHTML = "ButtonY";
+ButtonY.addEventListener('click', (e) => {
+    console.log('Button Y says: meow');
+
+});
+
+ButtonZ.innerHTML = "ButtonZ";
+ButtonZ.addEventListener('click', (e) => {
+    console.log('Button Z says: Hewwo');
+
+});
+//#endregion HTML Buttons
+
+//#region Key Presses
+document.addEventListener('keydown', (e) => {
+    console.log(`\"${e.key}" key pressed`);
+    if (e.key === ' ') {
+
+    }
+});
+//#endregion Key Presses
+
+//#endregion Testing and Debugging

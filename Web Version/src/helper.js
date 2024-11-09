@@ -2,18 +2,8 @@
 function rectsIntersect(a, b) {
     let ab = a.getBounds();
     let bb = b.getBounds();
-    return ab.x + ab.width > bb.x && ab.x < bb.x + bb.width && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
-}
-
-/**
- * 
- * @param {*} a see if this obj is inside (or out)
- * @param {*} b see if a is inside this rect
- */
-function isFullyInside(a, b) {
-    let ab = a.getBounds();
-    let bb = b.getBounds();
-    return bb.x <= ab.x && bb.y <= ab.y && ab.x + ab.width <= bb.x + bb.width && ab.y + ab.height <= bb.y + bb.height;
+    return ab.x + ab.width > bb.x && ab.x < bb.x + bb.width
+        && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
 }
 
 function calculateDistanceBetweenTwoPoints(pointA, pointB) {
@@ -40,11 +30,6 @@ function getRandomInt(min, max) {
  * @param {*} times num of rotations
  */
 function rotateBlock(block) {
-    // if (4 < block.numPossForms <= 0) {
-    //     console.log('NOTE: Rotating this block ' + times + ' will not change the block in a meaningful way');
-    //     return;
-    // }
-
     let currentShape = block.shape;
     let newShape = [];
 
@@ -71,5 +56,5 @@ function rotateBlock(block) {
             endOfCol--;
         }
     }
-    return block.shape = newShape;;
+    return block.shape = newShape;
 }

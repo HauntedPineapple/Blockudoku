@@ -5,20 +5,48 @@
     <meta charset="utf-8">
     <title>EXPERIMENTS</title>
     <link rel="stylesheet" type="text/css" href="styles/normalize.css">
-    <link rel="stylesheet" type="text/css" href="styles/other.css">
     <link rel="stylesheet" type="text/css" href="styles/main.css">
     <link rel="icon" type="image/png" href="assets/favicon-32x32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="assets/favicon-16x16.png" sizes="16x16" />
 
     <style>
-        body {
-            background-color: rgb(191, 241, 248);
+        #output {
+            margin: 25px;
+            padding: 15px;
+            border: 2px solid black;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+        }
+
+        .item {
+            border: 1px solid black;
+        }
+
+        .info {
+            padding-left: 15px;
+        }
+
+        #testButtons {
+            margin-top: 25px;
+            margin-left: 25px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
         }
     </style>
 </head>
 
 <body>
     <main>
+        <div id="testButtons">
+            <button id="aButton" type="button">Button A</button>
+            <button id="bButton" type="button">Button B</button>
+            <button id="cButton" type="button">Button C</button>
+            <button id="xButton" type="button">Button x</button>
+            <button id="yButton" type="button">Button Y</button>
+            <button id="zButton" type="button">Button Z</button>
+        </div>
         <div id="pixicanvas"></div>
         <div id="output"> </div>
     </main>

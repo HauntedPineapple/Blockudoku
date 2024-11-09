@@ -37,7 +37,7 @@ class Block extends PIXI.Container {
                     // cell.drawRect(i * CELLSIZE, j * CELLSIZE, CELLSIZE, CELLSIZE);
                     cell.drawRect(0, 0, CELLSIZE, CELLSIZE);
                     cell.endFill();
-                    cell.position=new PIXI.Point(CELLSIZE*i, CELLSIZE*j);
+                    cell.position = new PIXI.Point(CELLSIZE * i, CELLSIZE * j);
                     cell.label = 'normalForm block cell';
 
                     this.normalForm.scale = new PIXI.Point(0.65, 0.65);

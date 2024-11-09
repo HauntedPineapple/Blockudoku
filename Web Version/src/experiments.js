@@ -53,17 +53,26 @@ testGraphic2.drawRect(0, 0, CELLSIZE, CELLSIZE);
 testGraphic2.endFill();
 testContainer1.addChild(testGraphic2);
 
-testContainer1.pivot.x =testContainer1.width/2;
-testContainer1.pivot.y = testContainer1.height/2;
+testContainer1.pivot.x = testContainer1.width / 2;
+testContainer1.pivot.y = testContainer1.height / 2;
 
 APP.stage.addChild(testContainer1);
 // APP.stage.addChild(testGraphic1);
 
-function changeForm(){
+function changeForm() {
 
 }
 
-//////////////////////////////////
+//#region Buttons and Input
+function showData() {
+    document.body.querySelector("#output").innerHTML = '';
+    displayData(testContainer1, testContainer1.label);
+    displayData(testGraphic1, testGraphic1.label);
+    displayData(testGraphic2, testGraphic2.label);
+};
+showData();
+
+//#region PIXI Buttons
 const button1 = new PIXI.Graphics();
 button1.label = 'Button 1';
 button1.beginFill('#EF3E36');
@@ -97,7 +106,7 @@ button3.eventMode = 'static';
 button3.cursor = 'pointer';
 button3.on('pointerdown', (e) => {
     console.log("Button 3 says: MEOW");
-    testContainer1.scale = new PIXI.Point(1,1);
+    testContainer1.scale = new PIXI.Point(1, 1);
 });
 APP.stage.addChild(button3);
 
@@ -137,11 +146,58 @@ button6.on('pointerdown', (e) => {
     showData();
 });
 APP.stage.addChild(button6);
+//#endregion PIXI Buttons
 
-function showData() {
+//#region HTML Buttons
+const ButtonA = document.body.querySelector("#aButton");
+const ButtonB = document.body.querySelector("#bButton");
+const ButtonC = document.body.querySelector("#cButton");
+const ButtonX = document.body.querySelector("#xButton");
+const ButtonY = document.body.querySelector("#yButton");
+const ButtonZ = document.body.querySelector("#zButton");
+
+ButtonA.innerHTML = "ButtonA";
+ButtonA.addEventListener('click', (e) => {
+    console.log('Button A says: owo');
+});
+
+ButtonB.innerHTML = "ButtonB";
+ButtonB.addEventListener('click', (e) => {
+    console.log('Button B says: XD');
+});
+
+ButtonC.innerHTML = "Clear Output Data";
+ButtonC.addEventListener('click', (e) => {
+    // console.log('Button C says: rawr');
     document.body.querySelector("#output").innerHTML = '';
-    displayData(testContainer1, testContainer1.label);
-    displayData(testGraphic1, testGraphic1.label);
-    displayData(testGraphic2, testGraphic2.label);
-};
-showData();
+});
+
+ButtonX.innerHTML = "ButtonX";
+ButtonX.addEventListener('click', (e) => {
+    console.log('Button X says: UWU');
+
+});
+
+ButtonY.innerHTML = "ButtonY";
+ButtonY.addEventListener('click', (e) => {
+    console.log('Button Y says: meow');
+
+});
+
+ButtonZ.innerHTML = "ButtonZ";
+ButtonZ.addEventListener('click', (e) => {
+    console.log('Button Z says: Hewwo');
+
+});
+//#endregion
+
+//#region Keyboard Inputs
+document.addEventListener('keydown', (e) => {
+    console.log(`\"${e.key}" key pressed`);
+    if (e.key === ' ') {
+
+    }
+});
+//#endregion Keyboard Inputs
+
+//#endregion Buttons and Input

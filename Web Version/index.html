@@ -5,36 +5,70 @@
     <meta charset="utf-8">
     <title>Blockudoku</title>
     <link rel="stylesheet" type="text/css" href="styles/normalize.css">
-    <link rel="stylesheet" type="text/css" href="styles/other.css">
     <link rel="stylesheet" type="text/css" href="styles/main.css">
     <link rel="icon" type="image/png" href="assets/favicon-32x32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="assets/favicon-16x16.png" sizes="16x16" />
 
     <style>
         /* DELETE this later, for testing porpoises */
-        body {
-            background-color: rgb(205, 230, 233);
+        #output {
+            margin: 25px;
+            padding: 15px;
+            border: 2px solid black;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
         }
 
-        main {
+        .item {
+            border: 1px solid black;
+        }
+
+        .info {
+            padding-left: 15px;
+        }
+
+        #testButtons {
+            margin-top: 25px;
+            margin-left: 25px;
             display: flex;
+            flex-direction: row;
+            justify-content: space-between;
         }
     </style>
 </head>
 
 <body>
     <main>
+        <div id="testButtons">
+            <button id="aButton" type="button">Button A</button>
+            <button id="bButton" type="button">Button B</button>
+            <button id="cButton" type="button">Button C</button>
+            <button id="xButton" type="button">Button x</button>
+            <button id="yButton" type="button">Button Y</button>
+            <button id="zButton" type="button">Button Z</button>
+        </div>
+
         <div id="pixicanvas"></div>
 
         <div id="output"></div>
     </main>
+
+    <footer>
+        <div>
+            <a href="/experimentatiomn.html">Experimentation</a>
+            |
+            <a href="/about.html">About</a>
+
+        </div>
+    </footer>
 
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/8.5.2/pixi.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js"></script>
     <script src="src/dataPrinting.js"></script>
 
     <script src="src/globalConstants.js"></script>
-    <script src="srchelper.js"></script>
+    <script src="src/helper.js"></script>
     <script src="src/classes.js"></script>
     <script src="src/main.js"></script>
 </body>
