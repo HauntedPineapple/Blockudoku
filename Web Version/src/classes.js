@@ -22,8 +22,8 @@ class Block extends PIXI.Container {
             for (let j = 0; j < this.shape[0].length; j++)
                 if (this.shape[i][j] == 1) this.value++;
 
+        // this.randomizeRotation();
         this.makeBlock();
-        this.randomizeRotation();
 
     }
 
@@ -32,12 +32,11 @@ class Block extends PIXI.Container {
             for (let j = 0; j < this.shape.length; j++) {
                 if (this.shape[j][i] != 0) {
                     let cell = new PIXI.Graphics();
-                    cell.beginFill('#64B6AC');
-                    cell.lineStyle(4, '#5D737E', 1);
-                    // cell.drawRect(i * CELLSIZE, j * CELLSIZE, CELLSIZE, CELLSIZE);
+                    cell.position = new PIXI.Point(CELLSIZE * i, CELLSIZE * j);
+                    cell.beginFill(BLOCKCOLOR);
+                    cell.lineStyle(4, BLOCKOUTLINE, 1);
                     cell.drawRect(0, 0, CELLSIZE, CELLSIZE);
                     cell.endFill();
-                    cell.position = new PIXI.Point(CELLSIZE * i, CELLSIZE * j);
                     cell.label = 'normalForm block cell';
 
                     this.normalForm.scale = new PIXI.Point(0.65, 0.65);
@@ -55,8 +54,8 @@ class Block extends PIXI.Container {
             for (let j = 0; j < this.shape.length; j++) {
                 if (this.shape[j][i] != 0) {
                     let cell = new PIXI.Graphics();
-                    cell.beginFill('#64B6AC');
-                    cell.lineStyle(4, '#5D737E', 1);
+                    cell.beginFill(BLOCKCOLOR);
+                    cell.lineStyle(4, BLOCKOUTLINE, 1);
                     cell.drawRect(i * CELLSIZE, j * CELLSIZE, CELLSIZE * 0.8, CELLSIZE * 0.8);
                     cell.endFill();
                     cell.label = 'draggingForm block cell';
@@ -88,13 +87,8 @@ class Block extends PIXI.Container {
         let randomNum = getRandomInt(0, this.numPossRots);
         if (randomNum > 0) {
             for (let i = 0; i < randomNum; i++)
-                this.rotateBlock();
+                rotateBlockShape(this);
         }
-    }
-
-    rotateBlock() {
-        this.rotation += Math.PI / 2;
-        rotateBlock(this);
     }
 
     enableInteractivity() {
@@ -106,58 +100,5 @@ class Block extends PIXI.Container {
     disableInteractivity() {
         this.interactive = false;
         this.off('pointerdown', this.dragFunc, this);
-    }
-}
-
-class BlockSprite {
-    constructor(x = 0, y = 0, shape, texture, dragFunc, numPossForms = 1, currentForm = 1) {
-        this.numPossForms = numPossForms; // # of possible forms through 90deg rotations
-        this.currentForm = currentForm; // the current shape after being rotated 90Deg currentForm-1 times
-        if (this.currentForm < 1) this.currentForm = 1;
-
-        this.texture = texture;
-        this.sprite = PIXI.Sprite.from(texture);
-        this.sprite.x = x;
-        this.sprite.y = y;
-        this.sprite.scale = new PIXI.Point(0.5, 0.5);
-        this.sprite.anchor.set(0.5);
-
-        this.height = this.sprite.height;
-        this.width = this.sprite.width;
-        this.shape = shape;
-        this.value = 0;
-        for (let i = 0; i < this.shape.length; i++)
-            for (let j = 0; j < this.shape[0].length; j++)
-                if (this.shape[i][j] == 1) this.value++;
-
-        // Create the hitbox points
-        // ....
-        // this.sprite.hitArea = new PIXI.Polygon(new PIXI.Point(x, y), new PIXI.Point(x, y));
-        // this.sprite.hitArea = new PIXI.Polygon([x, y, x, y, x, y]);
-
-        this.dragFunc = dragFunc;
-        this.enableInteractivity();
-        app.stage.addChild(this.sprite);
-    }
-
-    enableInteractivity() {
-        this.sprite.interactive = true;
-        this.sprite.eventMode = 'static';
-        this.sprite.on('pointerdown', this.dragFunc, this);
-    }
-
-    disableInteractivity() {
-        this.sprite.interactive = false;
-        this.sprite.off('pointerdown', this.dragFunc, this);
-    }
-
-    rotate() {
-        this.sprite.rotation += Math.PI / 2;
-        rotateBlock(this);
-    }
-
-    release() {
-        this.disableInteractivity();
-        this.sprite.destroy();
     }
 }

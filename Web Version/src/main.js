@@ -7,8 +7,40 @@ window.__PIXI_DEVTOOLS__ = { app: APP };
 const WIDTH = APP.view.width;
 const HEIGHT = APP.view.height;
 
-//#region
-// let score = 0;
+//#region UI
+let score = 0;
+let scoreText = new PIXI.Text('Score: 0', new PIXI.TextStyle({
+    fontSize: 30,
+    dropShadow: true,
+    dropShadowAlpha: 0.5,
+    dropShadowAngle: 0.5,
+    dropShadowBlur: 1,
+    dropShadowColor: "#a5eee2",
+    dropShadowDistance: 3,
+    fontFamily: "Impact"
+}));
+scoreText.anchor.set(0.5);
+scoreText.position = new PIXI.Point(WIDTH / 2, HEIGHT / 15);
+APP.stage.addChild(scoreText);
+
+let scoreUpdater = new PIXI.Text('', new PIXI.TextStyle({
+    fontFamily: "Tahoma",
+    fontSize: 16
+}));
+scoreUpdater.anchor.set(0.5);
+scoreUpdater.position = new PIXI.Point(WIDTH / 2, HEIGHT / 36);
+APP.stage.addChild(scoreUpdater);
+
+function updateScore(addAmount = 0) {
+    score += addAmount;
+    scoreText.text = `Score: ${score}`;
+
+    // scoreUpdater.text = "3x Streak, +32";
+    // window.setTimeout((e) => {
+    //     scoreUpdater.text = "";
+    // }, 1500);
+}
+
 // let startScene, gameScene, gameOverScene;
 // let startGameButton, startOverButton;
 // let gameOverText;
@@ -28,36 +60,40 @@ const HEIGHT = APP.view.height;
 //     gameScene.label='game scene';
 //     gameOverScene.visible=false;
 //     gameOverScene.label='game over scene';
-// }
-//#endregion
+// } 
+//#endregion UI
 
 //#region game grid
 let gameGrid = {
     size: CELLSIZE * 9,
     gridContainer: new PIXI.Container(),
-    cellArray: [[], [], [], [], [], [], [], [], []],
-    topLeftCorner: { x: 75, y: 100 },
+    gridCellArray: [[], [], [], [], [], [], [], [], []],
+    gridArray: Array(9).fill().map(() => Array(9).fill(0)),
+    topLeftCorner: { x: 75, y: 80 },
 };
 gameGrid.gridContainer.label = 'grid container';
 
-// drawcells
+//#region draw cells
 for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
-        let currentColor = Math.floor(i / 3) % 2 === Math.floor(j / 3) % 2 ? '#D0EFB1' : '#B3D89C';
+        let currentColor = Math.floor(i / 3) % 2 === Math.floor(j / 3) % 2 ? GRIDCOLOR1 : GRIDCOLOR2;
 
         let cell = new PIXI.Graphics();
         cell.beginFill(currentColor);
-        cell.drawRect(gameGrid.topLeftCorner.x + (CELLSIZE * j), gameGrid.topLeftCorner.y + (CELLSIZE * i), CELLSIZE, CELLSIZE);
+        cell.x = gameGrid.topLeftCorner.x + (CELLSIZE * j);
+        cell.y = gameGrid.topLeftCorner.y + (CELLSIZE * i);
+        cell.drawRect(0, 0, CELLSIZE, CELLSIZE);
         cell.endFill();
         cell.label = 'grid cell';
 
-        gameGrid.cellArray[j][i] = cell;
+        gameGrid.gridCellArray[j][i] = cell;
         gameGrid.gridContainer.addChild(cell);
     }
 }
 APP.stage.addChild(gameGrid.gridContainer);
+//#endregion draw cells
 
-//draw lines
+//#region draw lines
 let lines = new PIXI.Graphics();
 lines.label = 'grid lines';
 lines.lineStyle(10, '#000000', 1);
@@ -79,6 +115,7 @@ for (let i = 1; i < 9; i++) {
     }
 }
 APP.stage.addChild(lines);
+//#endregion draw lines
 //#endregion game grid
 
 //#region playable blocks
@@ -110,12 +147,23 @@ function generatePlayableBlocks() {
     }
 }
 
-generatePlayableBlocks();
+//generatePlayableBlocks();
+for (let i = 0; i < 3; i++) {
+    let positionKey = Object.keys(playableBlockPositions)[i];
+
+    let newBlock = new Block(playableBlockPositions[positionKey], playableBlockPositions.y, BLOCKSHAPES.block8, onDragStart);
+    newBlock.label = `Playable Block ${i + 1}`;
+    APP.stage.addChild(newBlock);
+    playableBlocks.push(newBlock);
+}
+
 //#endregion playable blocks
 
 //#region movement
 let dragTarget = null;
 let hoveredGridCells = null;
+let nearestSpot = null; // obj = {x:#, y:#}
+
 APP.stage.eventMode = 'static';
 APP.stage.hitArea = APP.screen;
 APP.stage.on('pointerup', onDragEnd);
@@ -133,6 +181,7 @@ function onDragMove(e) {
         dragTarget.parent.toLocal(e.global, null, dragTarget.position);
 
         if (isInGrid(dragTarget)) {
+            clearHoveredCells();
             getNearestSpot(dragTarget);
         }
         else {
@@ -145,31 +194,29 @@ function onDragEnd() {
     if (dragTarget) {
         APP.stage.off('pointermove', onDragMove);
 
-        clearHoveredCells();
-
-        if (isInGrid(dragTarget)) {
-            console.log("In Grid");
+        if (isPlaceable(dragTarget, nearestSpot)) { // place the block
+            snapBlockToGrid(dragTarget, nearestSpot);
         }
-        else { // find the block's original spotand put it back
-            let originalPosX;
+        else { // find the block's original spot & put it back
             switch (Number(dragTarget.label.split("Playable Block ")[1])) {
                 case 1:
-                    originalPosX = playableBlockPositions.x1;
+                    dragTarget.position.x = playableBlockPositions.x1;
                     break;
                 case 2:
-                    originalPosX = playableBlockPositions.x2;
+                    dragTarget.position.x = playableBlockPositions.x2;
                     break;
                 case 3:
-                    originalPosX = playableBlockPositions.x3;
+                    dragTarget.position.x = playableBlockPositions.x3;
                     break;
             }
-            dragTarget.position.x = originalPosX;
             dragTarget.position.y = playableBlockPositions.y;
         }
 
+        clearHoveredCells();
         dragTarget.alpha = 1;
         dragTarget.changeForms();
 
+        nearestSpot = null;
         dragTarget = null;
     }
 }
@@ -195,44 +242,83 @@ function isInGrid(block) {
     return false;
 }
 
+/**
+ * Gets the nearest grid cell to the top left corner of the block's hitbox
+ * @param {Block} block 
+ * @returns the indices of the nearest grid cell
+ */
 function getNearestSpot(block) {
     // Get the top-left corner of the block
     let topCorner = { x: Math.floor(block.getBounds().x), y: Math.floor(block.getBounds().y) };
 
     // Calculate the nearest grid cell
-    let nearestGridCell = { x: Math.floor(topCorner.x / CELLSIZE), y: Math.floor(topCorner.y / CELLSIZE) - 1 };
+    let nearestGridCell = { x: Math.floor(topCorner.x / CELLSIZE), y: Math.floor(topCorner.y / CELLSIZE) };
 
     // console.log(block.shape);
     // console.log(nearestGridCell);
-    isPlaceable(block, nearestGridCell.x, nearestGridCell.y);
+    if (isPlaceable(block, nearestGridCell)) {
+        nearestSpot = nearestGridCell;
+        return nearestGridCell;
+    }
+    else {
+        nearestSpot = null;
+        return false;
+    }
 }
 
-function isPlaceable(block, gridRow, gridCol) {
-    clearHoveredCells();
-
-    hoveredGridCells = Array(block.shape.length).fill().map(() => Array(block.shape[0].length).fill());
+function isPlaceable(block, gridSpot) {
+    if (gridSpot == null) return false;
 
     for (let i = 0; i < block.shape[0].length; i++) {
         for (let j = 0; j < block.shape.length; j++) {
             if (block.shape[j][i] == 1) {
                 let boardIndices = {
-                    row: gridRow + i - 1,
-                    col: gridCol + j - 1
+                    row: gridSpot.x + i - 1,
+                    col: gridSpot.y + j - 1
                 };
 
-                // get the index of the corresponding cell
-                let index = (9 * boardIndices.col) + boardIndices.row;
+                // if the gridArray value is 0, it is an empty space
+                if (gameGrid.gridArray[boardIndices.row][boardIndices.col] != 0) {
+                    return false;
+                }
+            }
+        }
+    }
+    tintHoveredCells(block, gridSpot);
+    return true;
+}
 
+function snapBlockToGrid(block, gridSpot) {
+    for (let i = 0; i < block.shape[0].length; i++) {
+        for (let j = 0; j < block.shape.length; j++) {
+            if (block.shape[j][i] == 1) //fill the spots
+                gameGrid.gridArray[gridSpot.x + i - 1][gridSpot.y + j - 1] = 1;
+        }
+    }
+
+    dragTarget.normalForm.scale = new PIXI.Point(1, 1);
+    dragTarget.position.x = gameGrid.topLeftCorner.x + ((gridSpot.x - 1) * CELLSIZE) + dragTarget.pivot.x;
+    dragTarget.position.y = gameGrid.topLeftCorner.y + ((gridSpot.y - 1) * CELLSIZE) + dragTarget.pivot.y;
+
+    dragTarget.disableInteractivity();
+}
+
+function tintHoveredCells(block, gridSpot) {
+    hoveredGridCells = Array(block.shape.length).fill().map(() => Array(block.shape[0].length).fill());
+    for (let i = 0; i < block.shape[0].length; i++) {
+        for (let j = 0; j < block.shape.length; j++) {
+            if (block.shape[j][i] == 1) {
+                let boardIndices = { row: gridSpot.x + i - 1, col: gridSpot.y + j - 1 };
+                // get the index of the corresponding cell in the container's child array
+                let index = (9 * boardIndices.col) + boardIndices.row;
                 if (gameGrid.gridContainer.children.length > index > 0) {
                     let cell = gameGrid.gridContainer.children[index];
                     hoveredGridCells[j][i] = cell;
                     cell.tint = 0x22aa00;
                 }
-                else return false;
             }
         }
     }
-    return true;
 }
 
 function clearHoveredCells() {
@@ -244,12 +330,6 @@ function clearHoveredCells() {
             });
         });
     }
-}
-
-function snapBlockToGrid(block) {
-    // TODO
-    this.block.alpha = 1;
-    this.block.disableInteractivity();
 }
 //#endregion movement
 
@@ -275,26 +355,22 @@ const ButtonZ = document.body.querySelector("#zButton");
 
 ButtonA.innerHTML = "Show Block Data";
 ButtonA.addEventListener('click', (e) => {
-    // console.log('Button A says: owo');
     showBlockData();
 });
 
 ButtonB.innerHTML = "Generate New Blocks";
 ButtonB.addEventListener('click', (e) => {
-    // console.log('Button B says: XD');
     generatePlayableBlocks();
 });
 
 ButtonC.innerHTML = "Clear Output Data";
 ButtonC.addEventListener('click', (e) => {
-    // console.log('Button C says: rawr');
     document.body.querySelector("#output").innerHTML = '';
 });
 
 ButtonX.innerHTML = "ButtonX";
 ButtonX.addEventListener('click', (e) => {
-    console.log('Button X says: UWU');
-
+    console.log('Button X says: uwu');
 });
 
 ButtonY.innerHTML = "ButtonY";
@@ -313,8 +389,27 @@ ButtonZ.addEventListener('click', (e) => {
 //#region Key Presses
 document.addEventListener('keydown', (e) => {
     console.log(`\"${e.key}" key pressed`);
-    if (e.key === ' ') {
-
+    switch (e.key) {
+        case '`':
+            if (dragTarget) {
+                console.log(`dragTarget.position`);
+                console.log(dragTarget.position);
+            }
+            if (hoveredGridCells && hoveredGridCells.length > 0) {
+                console.log(`hoveredGridCells`);
+                console.log(hoveredGridCells);
+                hoveredGridCells.forEach(row => {
+                    row.forEach(cell => {
+                        if (cell)
+                            console.log('cell position');
+                        console.log(cell.position);
+                    });
+                });
+            }
+            break;
+        case '+':
+            updateScore(1);
+            break;
     }
 });
 //#endregion Key Presses

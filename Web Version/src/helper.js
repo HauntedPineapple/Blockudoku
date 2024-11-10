@@ -29,7 +29,7 @@ function getRandomInt(min, max) {
  * @param {*} block block to rotate
  * @param {*} times num of rotations
  */
-function rotateBlock(block) {
+function rotateBlockShape(block) {
     let currentShape = block.shape;
     let newShape = [];
 

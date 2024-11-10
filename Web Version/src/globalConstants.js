@@ -123,3 +123,9 @@ const BLOCKSHAPES = {
         ], numForms: 1
     },
 };
+
+// Colors
+const GRIDCOLOR1 = '#D0EFB1'; //tea green
+const GRIDCOLOR2 = '#B3D89C'; //celadon
+const BLOCKCOLOR = '#64B6AC'; //verdigris
+const BLOCKOUTLINE = '#45565E'; //outer space
