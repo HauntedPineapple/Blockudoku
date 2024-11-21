@@ -22,6 +22,7 @@
 
         .item {
             border: 1px solid black;
+            padding: 10px;
         }
 
         .info {
@@ -35,11 +36,15 @@
             flex-direction: row;
             justify-content: space-between;
         }
+
+        main {
+            display: flex;
+        }
     </style>
 </head>
 
 <body>
-    <main>
+    <header>
         <div id="testButtons">
             <button id="aButton" type="button">Button A</button>
             <button id="bButton" type="button">Button B</button>
@@ -48,7 +53,8 @@
             <button id="yButton" type="button">Button Y</button>
             <button id="zButton" type="button">Button Z</button>
         </div>
-
+    </header>
+    <main>
         <div id="pixicanvas"></div>
 
         <div id="output"></div>

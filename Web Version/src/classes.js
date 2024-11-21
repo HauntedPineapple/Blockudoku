@@ -22,15 +22,15 @@ class Block extends PIXI.Container {
             for (let j = 0; j < this.shape[0].length; j++)
                 if (this.shape[i][j] == 1) this.value++;
 
-        // this.randomizeRotation();
+        this.randomizeRotation();
         this.makeBlock();
 
     }
 
     makeBlock() {
-        for (let i = 0; i < this.shape[0].length; i++) {
-            for (let j = 0; j < this.shape.length; j++) {
-                if (this.shape[j][i] != 0) {
+        for (let i = 0; i < this.shape.length; i++) {
+            for (let j = 0; j < this.shape[0].length; j++) {
+                if (this.shape[i][j] != 0) {
                     let cell = new PIXI.Graphics();
                     cell.position = new PIXI.Point(CELLSIZE * i, CELLSIZE * j);
                     cell.beginFill(BLOCKCOLOR);
@@ -50,9 +50,9 @@ class Block extends PIXI.Container {
         this.pivot.x = this.width / 2;
         this.pivot.y = this.height / 2;
 
-        for (let i = 0; i < this.shape[0].length; i++) {
-            for (let j = 0; j < this.shape.length; j++) {
-                if (this.shape[j][i] != 0) {
+        for (let i = 0; i < this.shape.length; i++) {
+            for (let j = 0; j < this.shape[0].length; j++) {
+                if (this.shape[i][j] != 0) {
                     let cell = new PIXI.Graphics();
                     cell.beginFill(BLOCKCOLOR);
                     cell.lineStyle(4, BLOCKOUTLINE, 1);
